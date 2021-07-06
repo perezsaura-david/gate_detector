@@ -1,0 +1,6 @@
+__pycache__/
+Dataset/
+.code/
+.idea/
+checkpoints/
+make_conda_enviroment.bash
