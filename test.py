@@ -12,7 +12,7 @@ PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
 PATH_IMAGES  = "./Dataset/Data_Training/"
 image_dims = (480,360)
 # image_dims = (240,180)
-image_dims = (480,100)
+# image_dims = (480,100)
 
 
 CHECKPOINT_PATH = "./checkpoints/July-06-2021_17_01PM_GateNet_0.pth"
