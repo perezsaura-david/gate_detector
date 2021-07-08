@@ -35,8 +35,8 @@ class GateNet(torch.nn.Module):
             raise ValueError('mode is not defined.')
         elif mode == 'Vector':
             self.mode = mode 
-        elif mode == 'Gaussian':
-            self.mode = mode 
+        elif mode == 'Gaussian' or mode == 'PAFGauss':
+            self.mode = 'Gaussian'
         else:
             raise ValueError('mode ',str(mode), ' does not exist.')
         
@@ -67,7 +67,7 @@ class GateNet(torch.nn.Module):
             # self.up3 = Upsample(256,1)
 
             self.conv_1 = nn.Conv2d(256,256,kernel_size = 7,stride = 1,padding = [0,3])
-            self.conv_2 = nn.Conv2d(256, 1 ,kernel_size = 3,stride = 1,padding = 1)
+            self.conv_2 = nn.Conv2d(256, 4 ,kernel_size = 3,stride = 1,padding = 1)
 
     def forward(self,x):
         x = self.relu(self.bn1(self.conv1(x)))
@@ -106,7 +106,7 @@ class TrainableGateNet(pl.LightningModule):
         super(TrainableGateNet, self).__init__()
         self.mode = mode
         #load dataset
-        self.data = gatesDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations=mode)
+        self.data = gatesDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
         # Divide dataset between train and validation, p is the percentage of data for training
         self.batch_size = 2
            
@@ -122,7 +122,7 @@ class TrainableGateNet(pl.LightningModule):
         if mode == 'Vector':
             self.loss_criterion = DetectionLoss()
             print('Detection Loss')
-        elif mode == 'Gaussian':
+        elif mode == 'Gaussian' or mode == 'PAFGauss':
             self.loss_criterion = ContinuousFocalLoss()
             print('Continuous Loss')
 

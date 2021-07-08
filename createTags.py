@@ -1,6 +1,6 @@
 import torch, cv2, json
 import numpy as np
-from utils import MakeGaussMap
+from utils import * 
 import pdb
 
 from scipy.signal import find_peaks
@@ -53,7 +53,6 @@ class gatesDataset(torch.utils.data.Dataset):
         image = image / 255
         
         # Normalize labels between (0,1)
-
         normalizedLabels = []
         for label in labels:
             normalizedLabel = []
@@ -66,6 +65,7 @@ class gatesDataset(torch.utils.data.Dataset):
             normalizedLabels.append(normalizedLabel)
 
         normalizedLabels = np.array(normalizedLabels)
+
         # print(normalizedLabels)
         if self.label_transformations is None:
             if normalizedLabels.shape[1] != 8:
@@ -78,22 +78,37 @@ class gatesDataset(torch.utils.data.Dataset):
                 normalizedLabels =np.insert(normalizedLabels,0,1,1)
 
         elif self.label_transformations == 'Gaussian':
-            normalizedLabels = np.array(MakeGaussMap(image,normalizedLabels))
-            normalizedLabels= normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
+            try:
+                x1,y1,x2,y2,x3,y3,x4,y4 = normalizedLabels[0]
+                coordinates = np.array([[x1,y1],[x2,y2],[x3,y3],[x4,y4]]) 
+            except:
+                print("no labels")
+                coordinates = np.array([])
 
+            normalizedLabels = np.array(MakeGaussMap(image,coordinates))
+            normalizedLabels = normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
+            
+
+
+        elif self.label_transformations == 'PAFGauss':
+            labelsList = []
+            # List of corners (4)
+            normalizedCorner = groupCorners(normalizedLabels[0])
+            for i in range(np.shape(normalizedCorner)[0]):
+                corners = normalizedCorner[i]
+                normalizedLabels = np.array(MakeGaussMap(image,corners))
+                normalizedLabels = normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
+                N_labels = torch.from_numpy(normalizedLabels)
+                labelsList.append(N_labels[0])
         else:
             raise ValueError('Label_tranformation ' + str(self.label_transformations) +' does not exists')
-
-        # print(normalizedLabels.shape,image_filename)
-        # print(normalizedLabels.shape)
         
-        # N_labels = torch.Tensor(normalizedLabels)
-        N_labels = torch.from_numpy(normalizedLabels)
+        N4_labels = torch.zeros((4,normalizedLabels.shape[1],normalizedLabels.shape[2]))
 
-        # print(torch.Tensor(np.transpose(image,(2,0,1))), N_labels)
-        # print(N_labels.shape)
+        for i in range(4):
+            N4_labels[i] = labelsList[i]
 
-        return torch.Tensor(np.transpose(image,(2,0,1))), N_labels
+        return torch.Tensor(np.transpose(image,(2,0,1))), N4_labels
 
 
 ColorLists = [(255,0,0),(0,255,0),(0,0,255),(255,255,255),(0,0,0),(125,125,125)]

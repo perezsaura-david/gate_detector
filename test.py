@@ -30,7 +30,6 @@ for image,label in dataset:
     start_time = time.time()
     output = net(torch.unsqueeze(image,0).to(device))
     output=output.detach().to('cpu')
-    # plotGates(image,label,'Gaussian')
     plotGates(image,output,'Gaussian',show = True)
 
     end_time = time.time()
