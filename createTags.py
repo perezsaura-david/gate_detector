@@ -94,7 +94,7 @@ class gatesDataset(torch.utils.data.Dataset):
             labelsList = []
             # List of corners (4)
             normalizedCorner = groupCorners(normalizedLabels[0])
-            for i in range(np.shape(normalizedCorner)[0]):
+            for i in range(len(normalizedCorner)):
                 corners = normalizedCorner[i]
                 normalizedLabels = np.array(MakeGaussMap(image,corners))
                 normalizedLabels = normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
@@ -103,6 +103,15 @@ class gatesDataset(torch.utils.data.Dataset):
         else:
             raise ValueError('Label_tranformation ' + str(self.label_transformations) +' does not exists')
         
+        
+        if len(normalizedLabels.shape) != 3:
+            print('aqui entro')
+            print(self.labelsDict[image_filename])
+            print(image_filename)
+            print(normalizedLabels)
+            print(normalizedLabels.shape)
+            
+            
         N4_labels = torch.zeros((4,normalizedLabels.shape[1],normalizedLabels.shape[2]))
 
         for i in range(4):

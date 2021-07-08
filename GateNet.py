@@ -108,7 +108,7 @@ class TrainableGateNet(pl.LightningModule):
         #load dataset
         self.data = gatesDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
         # Divide dataset between train and validation, p is the percentage of data for training
-        self.batch_size = 2
+        self.batch_size = 25
            
         p = 0.8
         (self.train_data, self.val_data) = torch.utils.data.random_split(self.data, (
@@ -123,8 +123,10 @@ class TrainableGateNet(pl.LightningModule):
             self.loss_criterion = DetectionLoss()
             print('Detection Loss')
         elif mode == 'Gaussian' or mode == 'PAFGauss':
-            self.loss_criterion = ContinuousFocalLoss()
+            # self.loss_criterion = ContinuousFocalLoss()
+            self.loss_criterion = nn.MSELoss()
             print('Continuous Loss')
+            
 
     def forward(self, x):
         return self.network(x)
@@ -193,7 +195,20 @@ def _sigmoid(x):
 
 
 def _neg_loss(gt, pred):
+    import cv2
     
+    print('gt', gt.shape)
+    a = gt.detach().to('cpu')
+    b = pred.detach().to('cpu')
+    print('pred', pred.shape)
+    for i in range(a.shape[0]):
+        for j in range(a.shape[1]):
+            a_img = a[i][j].numpy()*5
+            b_img = b[i][j].numpy()*5
+            cv2.imshow('gt: '+str(j),a_img)
+            cv2.imshow('pred: '+str(j),b_img )
+        cv2.waitKey()
+        
     '''
     TOOK FROM CENTERNET PAPER 
     Modified focal loss. Exactly the same as CornerNet.
@@ -202,8 +217,8 @@ def _neg_loss(gt, pred):
     pred (batch x c x h x w)
     gt_regr (batch x c x h x w)
     '''
-    pos_inds = gt.eq(1).float()
-    neg_inds = gt.lt(1).float()
+    pos_inds = gt.ge(0.8).float()
+    neg_inds = gt.lt(0.8).float()
     # pos_inds=gt.gt(0.5).float()
         # print('y_hat shape:',y_hat.
     neg_weights = torch.pow(1 - gt, 4)

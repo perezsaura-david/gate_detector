@@ -34,6 +34,8 @@ def MakeGaussMap(image,labels,scale_factor = 2,sigma=1.25):
 
 def groupCorners(points):
     cornerList = []
+    
+    
     for i in range(len(points)):
         if i%2 == 0:
             x = points[i]
@@ -42,6 +44,9 @@ def groupCorners(points):
             coord = [x,y]
             cornerPoints = [coord]
             cornerList.append(cornerPoints)
+            
+            # cornerList.append([[x,y]])
+    
     return cornerList
 
 # if __name__ == "__main__":

@@ -7,9 +7,10 @@ LOAD_FROM_CHECKPOINT = False
 ##Train Step
 model = TrainableGateNet('PAFGauss')
 
-# if LOAD_FROM_CHECKPOINT == True:
-#     PATH = "./checkpoints/November-05-2019_16_36PM_test_batch_centers4.pth"
-#     model.load_state_dict(torch.load(PATH))
+if LOAD_FROM_CHECKPOINT == True:
+    PATH = "./checkpoints/July-08-2021_19_38PM_GateNet_3.pth"
+    model.load_state_dict(torch.load(PATH))
+    print ('LOADING CHECKPOINT ')
 
 print('View tensorboard logs by running\ntensorboard --logdir %s' % os.getcwd())
 print('and going to http://localhost:6006 on your browser')

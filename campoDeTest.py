@@ -36,6 +36,7 @@ for i, (img, labels) in enumerate(dataset):
     for j in range(len(labels)):
         lab_name = 'label '+ str(j)
         label = labels[j].numpy().squeeze()
+        label = label * (1/np.max(label))
         cv2.imshow(lab_name, label)
     k = cv2.waitKey()
     if k == 27:
