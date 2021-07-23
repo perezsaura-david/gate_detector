@@ -1,51 +1,25 @@
-from PAF import *
-from skimage.draw import line
-import random, time
+from PAF_grid import *
+import random
 
 # Usar coordenadas de una images: origen en esquina superior izquierda
-th_dist = 5
-# img_size = [240,480]
-img_size = [50,100]
-# img_size = [4,8]
+grid_size = 20
+img_size = [480,240]
 
-# gate1 = [[55,55],[155,415]]
-# gate2 = [[205,305],[15,155]]
-# gate3 = [[15,25],[35,450]]
-
-gate1 = [[45,5],[15,81]]
-gate2 = [[40,60],[20,10]]
-gate3 = [[1,2],[40,90]]
+gate1 = [[55,55],[415,155]]
+gate2 = [[105,205],[305,155]]
+gate3 = [[25,15],[450,35]]
 
 gates_corners = [gate1,gate2,gate3]
 
-# gates_corners = [[[25,50],[25,0]],
-#                  [[25,50],[0,0]],
-#                  [[25,50],[0,50]],
-#                  [[25,50],[0,100]],
-#                  [[25,50],[25,100]],
-#                  [[25,50],[50,100]],
-#                  [[25,50],[50,50]],
-#                  [[25,50],[50,0]]]
-
-# gate1 = [[10,20],[40,80]]
-# # gate1 = [[1,2],[3,3]]
-# gates_corners = [gate1]
-
 side_gates = np.array(gates_corners)
 
-time0=time.time()
-vx_map_sum, vy_map_sum, v_points_plot = generatePAF(side_gates, img_size, th_dist)
-time_end = (time.time() - time0)
-print('Time spend:', time_end, 's')
+vx_map_sum, vy_map_sum, c_grid_plot, grid_plot, v_points_plot = generate_PAF(side_gates, img_size, grid_size)
 
-plotPAFimg(vx_map_sum,vy_map_sum)
+# plotVecMaps(img_size, grid_plot, c_grid_plot, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
 
-# plotVecMaps(img_size, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
-exit()
-
-# Tamaño de celda por pixel. -> Done
-# Representar con HSV -> Done
-# LineIterator OpenCV Iterar -> Done
+# Tamaño de celda por pixel.
+# Representar con HSV
+# LineIterator OpenCV Iterar 
 # Meter los vertices en un APO
 
 # integratePathBtwCorners
@@ -106,7 +80,7 @@ test_corners = corners_detected[:2]
 
 v_idx, _, _ = integrateSidePath(test_corners,vx_map_sum, vy_map_sum)
 
-vx_map_sum = v_idx
+# vx_map_sum = v_idx
 
 plotVecMaps(img_size, grid_plot, c_grid_plot, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
 
