@@ -8,6 +8,6 @@ cd Dataset
 
 wget https://s3.amazonaws.com/herox-alphapilot/Data_Training.zip
 
-wget https://d253pvgap36xx8.cloudfront.net/challenges/resources/30b15372357911e9a16a0242ac110002/training_GT_labels_v2.json
+Download labels from: https://www.herox.com/alphapilot/resource/317
 
 then unzip dataset in the same folder
