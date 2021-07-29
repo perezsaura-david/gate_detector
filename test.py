@@ -18,7 +18,8 @@ image_dims = (480,360)
 # image_dims = (480,100)
 
 
-CHECKPOINT_PATH = "./checkpoints/July-08-2021_20_18PM_GateNet_7.pth"
+CHECKPOINT_PATH = "./checkpoints/July-28-2021_22_38PM_GateNet_1.pth"
+
 
 net = TrainableGateNet('PAFGauss')
 net.load_state_dict(torch.load(CHECKPOINT_PATH))
@@ -32,19 +33,37 @@ for image,label in dataset:
     
     start_time = time.time()
     output = net(torch.unsqueeze(image,0).to(device))
-    output=output.detach().to('cpu')[0]
+    output=output.detach().to('cpu')[0].numpy()
     print(output.shape)
-    out = torch.zeros((1,output.shape[1],output.shape[2]))
+
+    corners = output[:4]
+    vx_map  = output[4:8]
+    vy_map  = output[8:]
+
+    gauss_map = torch.zeros((1,output.shape[1],output.shape[2]))
     map =None
-    for j, map in enumerate(output):
-        out[0] += map
-        cv2.imshow('label'+str(j), map.numpy()*5)
-    # plotGates(image,out,'Gaussian',show = True)
-    plotGates(image,out,'Gaussian',show = True)
+    for j, map in enumerate(corners):
+        gauss_map[0] += map
+        cv2.imshow('label'+str(j), map*5)
+    plotGates(image,gauss_map,'Gaussian',show = True)
+
+    print("PAF")
+
+    vx_map_sum = np.zeros_like(vx_map[0])
+    for map in vx_map:
+        vx_map_sum += map
+
+    vy_map_sum = np.zeros_like(vy_map[0])
+    for map in vy_map:
+        vy_map_sum += map
+
+    p = plotPAFimg(vx_map_sum,vy_map_sum)
     
-   
     end_time = time.time()
     dif_time = end_time-start_time
     avg = 0.1 * dif_time + 0.9 * avg
     print('time ',avg ,' freq:',1/(avg))
+
+    if p == 27:
+        break
     

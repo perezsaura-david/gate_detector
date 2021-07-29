@@ -32,6 +32,23 @@ def MakeGaussMap(image,labels,scale_factor = 2,sigma=1.25):
 
     return gaussMap
 
+# Normalize labels between (0,1)
+def normalizeLabels(labels, original_width, original_height):
+    normalizedLabels = []
+    for label in labels:
+        normalizedLabel = []
+        for i, value in enumerate(label):
+            if i % 2 == 0:
+                value = value / original_width
+            else:
+                value = value / original_height
+            normalizedLabel.append(value)
+        normalizedLabels.append(normalizedLabel)
+
+    normalizedLabels = np.array(normalizedLabels)
+
+    return normalizedLabels
+
 def groupCorners(points):
     cornerList = []
     

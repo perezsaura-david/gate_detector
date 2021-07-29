@@ -67,7 +67,7 @@ class GateNet(torch.nn.Module):
             # self.up3 = Upsample(256,1)
 
             self.conv_1 = nn.Conv2d(256,256,kernel_size = 7,stride = 1,padding = [0,3])
-            self.conv_2 = nn.Conv2d(256, 4 ,kernel_size = 3,stride = 1,padding = 1)
+            self.conv_2 = nn.Conv2d(256, 12 ,kernel_size = 3,stride = 1,padding = 1)
 
     def forward(self,x):
         x = self.relu(self.bn1(self.conv1(x)))
@@ -106,9 +106,9 @@ class TrainableGateNet(pl.LightningModule):
         super(TrainableGateNet, self).__init__()
         self.mode = mode
         #load dataset
-        self.data = gatesDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
+        self.data = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
         # Divide dataset between train and validation, p is the percentage of data for training
-        self.batch_size = 25
+        self.batch_size = 2 #25
            
         p = 0.8
         (self.train_data, self.val_data) = torch.utils.data.random_split(self.data, (

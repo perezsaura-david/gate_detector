@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from skimage.draw import line
 import cv2,math
+import torch
 
 # def get_corner_from_gauss():
 #     # Function to get the points from the gaussian map
@@ -15,10 +16,10 @@ import cv2,math
 #     return
 
 # Make PAF map
-def makeVecMaps(img_size, corners, v_points, vector_1, th_dist):
+def makeVecMaps(image_dims, corners, v_points, vector_1, th_dist):
 
-    vx_map = np.zeros((img_size[0],img_size[1]))
-    vy_map = np.zeros((img_size[0],img_size[1]))
+    vx_map = np.zeros((image_dims[0],image_dims[1]))
+    vy_map = np.zeros((image_dims[0],image_dims[1]))
     
     for i in range(len(vx_map)):
         for j in range(len(vx_map[i])):
@@ -55,35 +56,53 @@ def corners2Vector(side_corners):
     vector_1 = vector / np.linalg.norm(vector)
 
     # Divide the line in points
-    v_points = np.array(list(zip(*line(side_corners[0,0],side_corners[0,1], side_corners[1,0],side_corners[1,1]))))
+    v_points = np.array(list(zip(*line(int(side_corners[0,0]),int(side_corners[0,1]), int(side_corners[1,0]),int(side_corners[1,1])))))
 
     return vector_1, v_points
 
-def generatePAF(side_gates, img_size, th_dist = 1):
+def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
 
-    vx_map_sum = np.zeros((img_size[0],img_size[1]))
-    vy_map_sum = np.zeros((img_size[0],img_size[1]))
+    if type(image) == torch.Tensor:
+        height = image.shape[1]
+        width = image.shape[2]
+    else:
+        height  = image.shape[0]
+        width = image.shape[1]
 
-    v_points_plot = []
-    for side_gate in side_gates:
+    height = height // scale_factor
+    width  = width // scale_factor
 
-        vector_1, v_points = corners2Vector(side_gate)
+    image_dims = (height,width)
 
-        vx_map, vy_map = makeVecMaps(img_size, side_gate, v_points, vector_1, th_dist)
+    vx_map_sum = np.zeros((height,width))
+    vy_map_sum = np.zeros((height,width))
 
-        vx_map_sum += vx_map
-        vy_map_sum += vy_map
+    # If there is no corner detected, we return empty maps
+    if len(side_gates) > 0:
+        # v_points_plot = []
+        for side_gate in side_gates:
 
-        v_points_plot.append(v_points)
+            for corner in side_gate:
+                corner[0] = int(round(corner[0] * height,0))
+                corner[1] = int(round(corner[1] * width,0))
+
+            vector_1, v_points = corners2Vector(side_gate)
+
+            vx_map, vy_map = makeVecMaps(image_dims, side_gate, v_points, vector_1, th_dist)
+
+            vx_map_sum += vx_map
+            vy_map_sum += vy_map
+
+            # v_points_plot.append(v_points)
 
     # vx_map_sum = vx_map_sum.transpose()
     # vy_map_sum = vy_map_sum.transpose()
 
-    return vx_map_sum, vy_map_sum, v_points_plot # v(x,y)_map_sum are required. The rest of the variables are for plotting only.
+    return vx_map_sum, vy_map_sum #, v_points_plot # v(x,y)_map_sum are required. The rest of the variables are for plotting only.
 
 
 # Plot vec maps
-def plotVecMaps(img_size, vx_map, vy_map, side_gates, v_points=[]):
+def plotVecMaps(image_dims, vx_map, vy_map, side_gates, v_points=[]):
 # v0_map = np.zeros((len(xc_grid),len(yc_grid)))
     v0_map = np.zeros_like(vx_map)
 
@@ -95,13 +114,13 @@ def plotVecMaps(img_size, vx_map, vy_map, side_gates, v_points=[]):
 
     fig, ax = plt.subplots(1,3, figsize=[20,3])
 
-    x = np.arange(0,img_size[0], 1)
-    y = np.arange(0,img_size[1], 1)
+    x = np.arange(0,image_dims[0], 1)
+    y = np.arange(0,image_dims[1], 1)
     xx,yy = np.meshgrid(x,y)
 
     for i in range(len(ax)):
-        ax[i].set_xlim(0,img_size[1])
-        ax[i].set_ylim(0,img_size[0])
+        ax[i].set_xlim(0,image_dims[1])
+        ax[i].set_ylim(0,image_dims[0])
         ax[i].invert_yaxis()
         
         for points in v_points:
@@ -152,7 +171,7 @@ def points2grid(points, grid_size, c_grid):
 
 def plotPAFimg(vx_map_sum,vy_map_sum):
     # HSV
-    # Hue -> orientation, 
+    # Hue        -> orientation
     # Saturation -> const 1
     # Brightness -> magnitude
     hsv_map = np.zeros((vx_map_sum.shape[0],vx_map_sum.shape[1],3), dtype='float32')
@@ -170,5 +189,9 @@ def plotPAFimg(vx_map_sum,vy_map_sum):
 
     hsv_map = cv2.cvtColor(hsv_map, cv2.COLOR_HSV2RGB)
     # plt.imshow(vx_map_sum, cmap='hsv')
-    plt.imshow(hsv_map)
-    plt.show()
+    # plt.imshow(hsv_map)
+    # plt.show()
+    cv2.imshow('PAF', hsv_map)
+    p = cv2.waitKey()
+
+    return p

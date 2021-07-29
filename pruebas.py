@@ -1,11 +1,14 @@
 from PAF import *
+from createTags import PAFDataset
 from skimage.draw import line
 import random, time
+import torch
+from tqdm import tqdm
 
 # Usar coordenadas de una images: origen en esquina superior izquierda
 th_dist = 5
 # img_size = [240,480]
-img_size = [50,100]
+image_dims = [50,100]
 # img_size = [4,8]
 
 # gate1 = [[55,55],[155,415]]
@@ -31,14 +34,62 @@ gates_corners = [gate1,gate2,gate3]
 # # gate1 = [[1,2],[3,3]]
 # gates_corners = [gate1]
 
-side_gates = np.array(gates_corners)
+# side_gates = np.array(gates_corners)
 
-time0=time.time()
-vx_map_sum, vy_map_sum, v_points_plot = generatePAF(side_gates, img_size, th_dist)
-time_end = (time.time() - time0)
-print('Time spend:', time_end, 's')
+PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
+PATH_IMAGES  = "./Dataset/Data_Training/"
+image_dims = (480,360)
 
-plotPAFimg(vx_map_sum,vy_map_sum)
+dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
+
+for i in tqdm(range(len(dataset))):
+
+    img, labels = dataset[i]
+
+    labels = labels.detach().numpy()
+
+    vx_map = labels[4:8]
+    vy_map = labels[8:]
+
+    # if len(points) > 0:
+    #     plt.scatter(points[0,:,0],points[0,:,1], c='r')
+    # if len(points) > 1:
+    #     plt.scatter(points[1,:,0],points[1,:,1], c='g')
+    # if len(points) > 2:
+    #     plt.scatter(points[2,:,0],points[2,:,1], c='b')
+    # if len(points) > 3:
+    #     plt.scatter(points[3,:,0],points[3,:,1], c='y')
+
+    # if len(lines) > 0:
+    #     plt.plot(lines[0,:,0,0],lines[0,:,0,1], c='r')
+    # if len(lines) > 1:
+    #     plt.plot(lines[1,:,0,0],lines[1,:,0,1], c='g')
+    # if len(lines) > 2:
+    #     plt.plot(lines[2,:,0,0],lines[2,:,0,1], c='b')
+    # if len(lines) > 3:
+    #     plt.plot(lines[3,:,0,0],lines[3,:,0,1], c='y')
+
+    vx_map_sum = np.zeros_like(vx_map[0])
+    for map in vx_map:
+        vx_map_sum += map
+
+    vy_map_sum = np.zeros_like(vy_map[0])
+    for map in vy_map:
+        vy_map_sum += map
+
+    p = plotPAFimg(vx_map_sum,vy_map_sum)
+
+    if p == 27:
+        break
+    else:
+        continue
+
+# time0=time.time()
+# vx_map_sum, vy_map_sum, v_points_plot = generatePAF(side_gates, image_dims, th_dist)
+# time_end = (time.time() - time0)
+# print('Time spend:', time_end, 's')
+
+# plotPAFimg(vx_map_sum,vy_map_sum)
 
 # plotVecMaps(img_size, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
 exit()
@@ -118,3 +169,22 @@ plotVecMaps(img_size, grid_plot, c_grid_plot, vx_map_sum, vy_map_sum, side_gates
 #     corners_grid = point2grid()
     
     # path_score = integratePathBtwCorners(xy_corners, vx_map_sum, vy_map_sum)
+
+### Corner distribution ###
+# PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
+# PATH_IMAGES  = "./Dataset/Data_Training/"
+# image_dims = (480,360)
+
+# dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
+
+# for i in tqdm(range(len(dataset)//10)):
+#     data = dataset[i]
+#     if len(data) > 0:
+#         plt.scatter(data[0,:,0],data[0,:,1], c='r')
+#     if len(data) > 1:
+#         plt.scatter(data[1,:,0],data[1,:,1], c='g')
+#     if len(data) > 2:
+#         plt.scatter(data[2,:,0],data[2,:,1], c='b')
+#     if len(data) > 3:
+#         plt.scatter(data[3,:,0],data[3,:,1], c='y')
+# plt.show()
