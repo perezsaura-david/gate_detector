@@ -1,3 +1,4 @@
+from models import Merge
 import os
 from datetime import datetime
 from torch.nn import functional as F
@@ -69,12 +70,34 @@ class GateNet(torch.nn.Module):
             self.conv_1 = nn.Conv2d(256,256,kernel_size = 7,stride = 1,padding = [0,3])
             self.conv_2 = nn.Conv2d(256, 12 ,kernel_size = 3,stride = 1,padding = 1)
 
+    # def forward(self,x):
+    #     x = self.relu(self.bn1(self.conv1(x)))
+    #     x = self.layer1(x)
+    #     x = self.layer2(x)
+    #     x = self.layer3(x)
+    #     x = self.layer4(x)
+    #     # print(x.shape)
+
+    #     if self.mode == 'Vector':
+    #         x = F.relu(self.fc2(x))
+    #         x = F.relu(self.fc1(x))
+    #         x = F.relu(self.fc2(x))
+    #         x = torch.sigmoid(self.fc3(x))
+
+    #     elif self.mode == 'Gaussian':
+    #         x = self.up1(x)
+    #         x = self.up2(x)
+    #         x = self.up3(x)
+    #         x = F.relu(self.conv_1(x))
+    #         x = torch.sigmoid(self.conv_2(x))
+
+    # 
     def forward(self,x):
         x = self.relu(self.bn1(self.conv1(x)))
         x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        l2 = self.layer2(x)
+        l3 = self.layer3(l2)
+        x = self.layer4(l3)
         # print(x.shape)
 
         if self.mode == 'Vector':
@@ -84,8 +107,13 @@ class GateNet(torch.nn.Module):
             x = torch.sigmoid(self.fc3(x))
 
         elif self.mode == 'Gaussian':
+            # x = l3 + self.up1(x)
+            # x = l2 + self.up2(x)
             x = self.up1(x)
+            x = Merge(x,l3)
             x = self.up2(x)
+            x = Merge(x,l2)
+
             x = self.up3(x)
             x = F.relu(self.conv_1(x))
             x = torch.sigmoid(self.conv_2(x))
@@ -195,19 +223,19 @@ def _sigmoid(x):
 
 
 def _neg_loss(gt, pred):
-    import cv2
+    # import cv2
     
-    print('gt', gt.shape)
-    a = gt.detach().to('cpu')
-    b = pred.detach().to('cpu')
-    print('pred', pred.shape)
-    for i in range(a.shape[0]):
-        for j in range(a.shape[1]):
-            a_img = a[i][j].numpy()*5
-            b_img = b[i][j].numpy()*5
-            cv2.imshow('gt: '+str(j),a_img)
-            cv2.imshow('pred: '+str(j),b_img )
-        cv2.waitKey()
+    # print('gt', gt.shape)
+    # a = gt.detach().to('cpu')
+    # b = pred.detach().to('cpu')
+    # print('pred', pred.shape)
+    # for i in range(a.shape[0]):
+    #     for j in range(a.shape[1]):
+    #         a_img = a[i][j].numpy()*5
+    #         b_img = b[i][j].numpy()*5
+    #         cv2.imshow('gt: '+str(j),a_img)
+    #         cv2.imshow('pred: '+str(j),b_img )
+    #     cv2.waitKey()
         
     '''
     TOOK FROM CENTERNET PAPER 
