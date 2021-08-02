@@ -108,7 +108,7 @@ class TrainableGateNet(pl.LightningModule):
         #load dataset
         self.data = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
         # Divide dataset between train and validation, p is the percentage of data for training
-        self.batch_size = 2 #25
+        self.batch_size = 65 #25
            
         p = 0.8
         (self.train_data, self.val_data) = torch.utils.data.random_split(self.data, (

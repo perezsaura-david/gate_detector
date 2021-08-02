@@ -18,7 +18,7 @@ image_dims = (480,360)
 # image_dims = (480,100)
 
 
-CHECKPOINT_PATH = "./checkpoints/July-28-2021_22_38PM_GateNet_1.pth"
+CHECKPOINT_PATH = "./checkpoints/July-31-2021_20_00PM_GateNet_213.pth"
 
 
 net = TrainableGateNet('PAFGauss')
