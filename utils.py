@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import torch
-from  createTags import *
 
 PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
 PATH_IMAGES  = "./Dataset/Data_Training/"

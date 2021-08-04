@@ -1,7 +1,7 @@
 import torch, cv2, json
 import numpy as np
 from utils import * 
-from PAF import *
+from PAF import generatePAF 
 import pdb
 
 from scipy.signal import find_peaks
@@ -347,12 +347,14 @@ def plotGates(image,label,label_type = None,show = True):
         
             # cv2.imshow('GaussianMap',label)
             # pdb.set_trace()
-        if show == True:    
-            cv2.imshow('GaussianMap',label)
-            cv2.waitKey()
+    #     if show == True:    
+    #         cv2.imshow('GaussianMap',label)
+    #         # cv2.waitKey()
         
-    if show == True:        
-        cv2.imshow('image Labeled',image)
-        cv2.waitKey()
+    # if show == True:        
+    #     cv2.imshow('image Labeled',image)
+        # cv2.waitKey()
+    
+    return label, image
 
 

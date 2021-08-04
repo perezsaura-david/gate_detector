@@ -1,4 +1,4 @@
-import  os
+import os
 from GateNet import *
 from pytorch_lightning import Trainer
 
@@ -15,5 +15,5 @@ if LOAD_FROM_CHECKPOINT == True:
 print('View tensorboard logs by running\ntensorboard --logdir %s' % os.getcwd())
 print('and going to http://localhost:6006 on your browser')
 
-trainer = Trainer(default_root_dir='./checkpoints/',max_epochs=1000,gpus=1)
+trainer = Trainer(default_root_dir='./checkpoints/',max_epochs=100,gpus=1)
 trainer.fit(model)

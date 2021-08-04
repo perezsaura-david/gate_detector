@@ -11,8 +11,8 @@ from createTags import *
 
 PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
 PATH_IMAGES  = "./Dataset/Data_Training/"
-# image_dims = (480,360)
-image_dims = (240,180)
+# image_dims = (480,368)
+image_dims = (240,192)
 
 
 class Upsample(nn.Module):
@@ -63,11 +63,11 @@ class GateNet(torch.nn.Module):
 
         elif self.mode == 'Gaussian':
             self.up1 = Upsample(512, 512)
-            self.up2 = Upsample(512, 256)
-            self.up3 = Upsample(256, 256)
+            self.up2 = Upsample(768, 256)
+            self.up3 = Upsample(384, 256)
             # self.up3 = Upsample(256,1)
 
-            self.conv_1 = nn.Conv2d(256,256,kernel_size = 7,stride = 1,padding = [0,3])
+            self.conv_1 = nn.Conv2d(256,256,kernel_size = 5,stride = 1,padding = 2)
             self.conv_2 = nn.Conv2d(256, 12 ,kernel_size = 3,stride = 1,padding = 1)
 
     # def forward(self,x):
@@ -93,12 +93,17 @@ class GateNet(torch.nn.Module):
 
     # 
     def forward(self,x):
+        # print("x:", x.shape)
         x = self.relu(self.bn1(self.conv1(x)))
-        x = self.layer1(x)
-        l2 = self.layer2(x)
-        l3 = self.layer3(l2)
-        x = self.layer4(l3)
-        # print(x.shape)
+        # print("l0:", x.shape)
+        d1 = self.layer1(x)
+        d2 = self.layer2(d1)
+        d3 = self.layer3(d2)
+        x = self.layer4(d3)
+        # print("l1:", d1.shape)
+        # print("l2:", d2.shape)
+        # print("l3:", d3.shape)
+        # print("x:",x.shape)
 
         if self.mode == 'Vector':
             x = F.relu(self.fc2(x))
@@ -107,18 +112,34 @@ class GateNet(torch.nn.Module):
             x = torch.sigmoid(self.fc3(x))
 
         elif self.mode == 'Gaussian':
-            # x = l3 + self.up1(x)
-            # x = l2 + self.up2(x)
-            x = self.up1(x)
-            x = Merge(x,l3)
-            x = self.up2(x)
-            x = Merge(x,l2)
+            # print("x:", x.shape)
 
-            x = self.up3(x)
+            u1 = self.up1(x)
+            # x = u1
+            # x = d3 + u1
+            x = torch.cat((u1,d3),1)
+
+            u2 = self.up2(x)
+            # x = u2
+            # x = d2 + u2
+            x = torch.cat((u2,d2),1)
+
+            u3 = self.up3(x)
+            x = u3
+
+            # print("up1:",u1.shape)
+            # print("up2:",u2.shape)
+            # print("up3:",u3.shape)
+
             x = F.relu(self.conv_1(x))
-            x = torch.sigmoid(self.conv_2(x))
+            # print("x:", x.shape)
+            x = self.conv_2(x)
+            x1 = torch.sigmoid(x[:,:4])
+            x2 = torch.tanh(x[:,4:])
+            x = torch.cat((x1,x2),1)
+            # x = torch.sigmoid(self.conv_2(x))
+            # print("x:", x.shape)
             
-
         return x
             
 class DetectionLoss(nn.Module):
@@ -136,7 +157,7 @@ class TrainableGateNet(pl.LightningModule):
         #load dataset
         self.data = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
         # Divide dataset between train and validation, p is the percentage of data for training
-        self.batch_size = 65 #25
+        self.batch_size = 10 #65 #25
            
         p = 0.8
         (self.train_data, self.val_data) = torch.utils.data.random_split(self.data, (
@@ -151,9 +172,11 @@ class TrainableGateNet(pl.LightningModule):
             self.loss_criterion = DetectionLoss()
             print('Detection Loss')
         elif mode == 'Gaussian' or mode == 'PAFGauss':
+            # print('Continuous Loss')
             # self.loss_criterion = ContinuousFocalLoss()
+            print('MSE Loss')
             self.loss_criterion = nn.MSELoss()
-            print('Continuous Loss')
+            
             
 
     def forward(self, x):
@@ -165,6 +188,12 @@ class TrainableGateNet(pl.LightningModule):
         (x, y) = batch
         y_hat = self.forward(x)
         loss = self.loss_criterion(y,y_hat)
+
+        # # Traza
+        # y_hat = self.forward(x)[:,:4]
+        # y_test = y[:,:4]
+        # # print(y_test.shape)
+        # loss = self.loss_criterion(y_test,y_hat)
 
         tensorboard_logs = {'train_loss': loss}
         return {'loss': loss, 'log': tensorboard_logs}
@@ -285,8 +314,7 @@ class ContinuousFocalLoss(nn.Module):
 
 
 if __name__ == "__main__":
-    net=GateNet('Gaussian')
-    x = torch.randn([1,3,image_dims[0],image_dims[1]])
-    # print(net(x).shape)
+    net=GateNet('PAFGauss')
+    print(net)
 
 

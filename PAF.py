@@ -72,10 +72,10 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
     height = height // scale_factor
     width  = width // scale_factor
 
-    image_dims = (height,width)
+    image_dims = (width,height)
 
-    vx_map_sum = np.zeros((height,width))
-    vy_map_sum = np.zeros((height,width))
+    vx_map_sum = np.zeros(image_dims)
+    vy_map_sum = np.zeros(image_dims)
 
     # If there is no corner detected, we return empty maps
     if len(side_gates) > 0:
@@ -83,8 +83,8 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
         for side_gate in side_gates:
 
             for corner in side_gate:
-                corner[0] = int(round(corner[0] * height,0))
-                corner[1] = int(round(corner[1] * width,0))
+                corner[0] = int(round(corner[0] * width,0))
+                corner[1] = int(round(corner[1] * height,0))
 
             vector_1, v_points = corners2Vector(side_gate)
 
@@ -95,8 +95,8 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
 
             # v_points_plot.append(v_points)
 
-    # vx_map_sum = vx_map_sum.transpose()
-    # vy_map_sum = vy_map_sum.transpose()
+    vx_map_sum = vx_map_sum.transpose()
+    vy_map_sum = vy_map_sum.transpose()
 
     return vx_map_sum, vy_map_sum #, v_points_plot # v(x,y)_map_sum are required. The rest of the variables are for plotting only.
 
@@ -191,7 +191,5 @@ def plotPAFimg(vx_map_sum,vy_map_sum):
     # plt.imshow(vx_map_sum, cmap='hsv')
     # plt.imshow(hsv_map)
     # plt.show()
-    cv2.imshow('PAF', hsv_map)
-    p = cv2.waitKey()
 
-    return p
+    return hsv_map
