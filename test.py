@@ -21,7 +21,7 @@ net.load_state_dict(torch.load(CHECKPOINT_PATH))
 
 net = net.to(device)
 
-dataset = gatesDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
+dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
 avg = 0
 for image,label in dataset:

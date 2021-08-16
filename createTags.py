@@ -4,9 +4,9 @@ from utils import *
 from PAF import generatePAF 
 import pdb
 
-from scipy.signal import find_peaks
+# from scipy.signal import find_peaks
 from skimage.feature import peak_local_max
-from skimage import data, img_as_float
+# from skimage import data, img_as_float
 
 class PAFDataset(torch.utils.data.Dataset):
     """
@@ -50,17 +50,18 @@ class PAFDataset(torch.utils.data.Dataset):
         image = cv2.resize(image,(self.width,self.height),interpolation = cv2.INTER_AREA)
         image = image / 255
 
-        normalizedLabels = normalizeLabels(labels, original_width, original_height)
+        grouped_labels = groupCorners(labels[0])
+        normalized_corners = normalizeLabels(grouped_labels, original_width, original_height)
 
         scale_factor = 2
         # self.label_transformations == 'PAFGauss':
         labelsList = []
         # List of corners (4)
-        normalizedCorner = groupCorners(normalizedLabels[0])
+        # normalizedCorner = groupCorners(normalizedLabels[0])
         #
-        if len(normalizedCorner) > 0:
-            for i in range(len(normalizedCorner)):
-                corners = normalizedCorner[i]
+        if len(normalized_corners) > 0:
+            for i in range(len(normalized_corners)):
+                corners = normalized_corners[i]
                 normalizedLabels = np.array(MakeGaussMap(image,corners, scale_factor))
                 normalizedLabels = normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
                 N_labels = torch.from_numpy(normalizedLabels)
@@ -73,7 +74,7 @@ class PAFDataset(torch.utils.data.Dataset):
                 N_labels = torch.from_numpy(normalizedLabels)
                 labelsList.append(N_labels[0])
                 
-        normalizedCorner = np.array(normalizedCorner)
+        normalized_corners = np.array(normalized_corners)
 
         # Create PAF vectorial maps
         th_dist = 5 # Distance of the line between corners to which the vector map is applied
@@ -88,24 +89,24 @@ class PAFDataset(torch.utils.data.Dataset):
         # if len(normalizedCorner) < 4:
         #         print('Corners detected:', len(normalizedCorner),'file', image_filename)
 
-        if len(normalizedCorner) > 0:
+        if len(normalized_corners) > 0:
             # print("Modificar para menos de 4 esquinas detectadas")
-            n_gates = normalizedCorner.shape[1]
+            n_gates = normalized_corners.shape[1]
             
             # Loop on every one of the 4 corners of a gate
-            for i in range(len(normalizedCorner)):
+            for i in range(len(normalized_corners)):
                 # How many points corresponding to this corner has been detected (number of gates in the image)
-                n_detected_points = len(normalizedCorner[i])
+                n_detected_points = len(normalized_corners[i])
                 # print(n_gates, n_detected_points)
                 if n_gates != n_detected_points:
                     print("Number of points of each corner must be equal to number of gates")
                 for j in range(n_gates):
                     corners_side = np.zeros((n_gates,2,2))
-                    corners_side[:,0] = normalizedCorner[i,j]
+                    corners_side[:,0] = normalized_corners[i,j]
                     i_next = i + 1
-                    if i_next == len(normalizedCorner):
+                    if i_next == len(normalized_corners):
                         i_next = 0
-                    corners_side[:,1] = normalizedCorner[i_next,j]
+                    corners_side[:,1] = normalized_corners[i_next,j]
 
                     vx_map, vy_map = generatePAF(image, corners_side, scale_factor, th_dist)
 
@@ -151,7 +152,7 @@ class PAFDataset(torch.utils.data.Dataset):
         return torch.Tensor(np.transpose(image,(2,0,1))), N12_labels
 
 
-
+'''
 class gatesDataset(torch.utils.data.Dataset):
     """
     AlphaPilot torch dataset object. 
@@ -261,7 +262,7 @@ class gatesDataset(torch.utils.data.Dataset):
             N4_labels[i] = labelsList[i]
 
         return torch.Tensor(np.transpose(image,(2,0,1))), N4_labels
-
+'''
 
 ColorLists = [(255,0,0),(0,255,0),(0,0,255),(255,255,255),(0,0,0),(125,125,125)]
 
@@ -319,7 +320,6 @@ def plotGates(image,label,label_type = None,show = True):
         
         im = label
         coordinates = peak_local_max(im, min_distance=6)*2
-        # print(coordinates)
 
         # print(coordinates.shape)
         if coordinates.shape[0] == 4:
@@ -357,4 +357,7 @@ def plotGates(image,label,label_type = None,show = True):
     
     return label, image
 
+# def getCornersFromGauss():
 
+
+#     return

@@ -1,9 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-from skimage.draw import line
-import cv2,math
 import torch
+import numpy as np
+
+
+from utils import corners2Vector, getCornersFromGaussMap, normalizeLabels, resizeLabels, integratePathBtwCorners
 
 # def get_corner_from_gauss():
 #     # Function to get the points from the gaussian map
@@ -49,17 +48,6 @@ def makeVecMaps(image_dims, corners, v_points, vector_1, th_dist):
 
     return vx_map, vy_map
 
-def corners2Vector(side_corners):
-
-    # Calculate vector between corner points
-    vector = np.array([side_corners[1,0] - side_corners[0,0],side_corners[1,1] - side_corners[0,1]])
-    vector_1 = vector / np.linalg.norm(vector)
-
-    # Divide the line in points
-    v_points = np.array(list(zip(*line(int(side_corners[0,0]),int(side_corners[0,1]), int(side_corners[1,0]),int(side_corners[1,1])))))
-
-    return vector_1, v_points
-
 def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
 
     if type(image) == torch.Tensor:
@@ -86,7 +74,8 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
                 corner[0] = int(round(corner[0] * width,0))
                 corner[1] = int(round(corner[1] * height,0))
 
-            vector_1, v_points = corners2Vector(side_gate)
+
+            _, vector_1, v_points = corners2Vector(side_gate[0],side_gate[1])
 
             vx_map, vy_map = makeVecMaps(image_dims, side_gate, v_points, vector_1, th_dist)
 
@@ -100,96 +89,146 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
 
     return vx_map_sum, vy_map_sum #, v_points_plot # v(x,y)_map_sum are required. The rest of the variables are for plotting only.
 
+def connectSides(corners, vx_maps, vy_maps):
 
-# Plot vec maps
-def plotVecMaps(image_dims, vx_map, vy_map, side_gates, v_points=[]):
-# v0_map = np.zeros((len(xc_grid),len(yc_grid)))
-    v0_map = np.zeros_like(vx_map)
+    # Check points of the next corner
+    connected_sides_list = []
+    # Each 4 possible corners
+    for c_i in range(4):    
+        corner_connected_list = []
+        # Each point detected of this corner
+        for p_i in range(len(corners[c_i])):  
+            # score_corner_list = []
+            # Next corner
+            c_j = (c_i + 1) % 4
+            # if c_i == 3:
+            #     c_j = 0
+            # else:
+            #     c_j = c_i + 1
 
-    vec_map_f = [vx_map, vy_map]
-    vec_map_x = [vx_map, v0_map]
-    vec_map_y = [v0_map, vy_map]
+            score_point_list = []
+            # Each point detected of this corner
+            for p_j in range(len(corners[c_j])):  
+                vx_map = vx_maps[c_i]
+                vy_map = vy_maps[c_i]
+                corner_0 = corners[c_i][p_i]
+                corner_1 = corners[c_j][p_j]
+                score_point = integratePathBtwCorners(corner_0,corner_1,vx_map,vy_map)
+                score_point_list.append(score_point)
 
-    vm = [vec_map_f, vec_map_x, vec_map_y]
+            idx_point_selected = np.argmin(score_point_list)
+            corner_connected_list.append([corners[c_i][p_i],corners[c_j][idx_point_selected]])
 
-    fig, ax = plt.subplots(1,3, figsize=[20,3])
+        connected_sides_list.append(corner_connected_list)
+        connected_sides_array = np.array(connected_sides_list)
 
-    x = np.arange(0,image_dims[0], 1)
-    y = np.arange(0,image_dims[1], 1)
-    xx,yy = np.meshgrid(x,y)
+    return connected_sides_array
 
-    for i in range(len(ax)):
-        ax[i].set_xlim(0,image_dims[1])
-        ax[i].set_ylim(0,image_dims[0])
-        ax[i].invert_yaxis()
-        
-        for points in v_points:
-            # Plot subpoints
-            ax[i].scatter(points[:,1],points[:,0], c='c', alpha=0.5)
-        for corners in side_gates:
-            # Plot line
-            ax[i].plot(corners[:,1],corners[:,0], c='r')
-            # Plot corners points
-            ax[i].scatter(corners[:,1],corners[:,0], c='r')
-        # Plot vector map
-        ax[i].quiver(yy, xx, vm[i][1].transpose(), -vm[i][0].transpose(), scale_units='xy', scale=1, pivot='mid')
+def connectGatesFromSides(side_list):
 
-    plt.show()
+    side_list = np.array(side_list)
 
-def integratePathBtwCorners():
+    gate_list = []
+    print(side_list, side_list.shape)
+    for i in range(side_list.shape[1]):
+        gate = []
+        for j in range(4):
+            if j == 0:
+                gate.append(side_list[j,i,0])
+                gate.append(side_list[j,i,1])
+            else:
+                for k in range(len(side_list[j])):
 
-
-
-    return
-
-def points2grid(points, grid_size, c_grid):
-
-    points_grid = [[int(points[0,0]//grid_size),int(points[0,1]//grid_size)]]
-
-    for i in range(len(points)):
-        next_point = [int(points[i,0]//grid_size),int(points[i,1]//grid_size)]
-        if next_point in points_grid: # Avoid duplicates
-            continue
-        else:
-            points_grid.append(next_point)
-
-    points_grid = np.array(points_grid)
-
-    plot_points = [[points[0,0],points[0,1]]]
-    # Plot
-    for i in range(len(points)):
-        next_point = [int(points[i,0]//grid_size),int(points[i,1]//grid_size)]
-        next_center = [c_grid[0][next_point[0]],c_grid[1][next_point[1]]]
-        if next_center in plot_points: # Avoid duplicates
-            continue
-        else:
-            plot_points.append(next_center)
-
-    plot_points = np.array(plot_points)
-
-    return points_grid, plot_points
-
-def plotPAFimg(vx_map_sum,vy_map_sum):
-    # HSV
-    # Hue        -> orientation
-    # Saturation -> const 1
-    # Brightness -> magnitude
-    hsv_map = np.zeros((vx_map_sum.shape[0],vx_map_sum.shape[1],3), dtype='float32')
-    for i in range(vx_map_sum.shape[0]):
-        for j in range(vx_map_sum.shape[1]):
-            hsv_map[i,j,0] = (math.atan2(vx_map_sum[i,j],vy_map_sum[i,j])+np.pi)*360/(2*np.pi) # Orientation
-            hsv_map[i,j,1] = 1.0    # Saturation
-            hsv_map[i,j,2] = np.linalg.norm([vx_map_sum[i,j],vy_map_sum[i,j]]) # Magnitude
+                    if np.array_equal(gate[-1],side_list[j,k,0]):
+                        gate.append(side_list[j,k,1])
+        # gate = gate[:-1] # Last point is useful just to check if the gate is correct. It may be deleted.
+        gate_list.append(gate)
     
-    # Normalize vector magnitude channel
-    # hsv_map[:,:,2] = hsv_map[:,:,2] / np.amax(hsv_map[:,:,2])
-    # Show image of each channel
-    # for i in range(3):
-    #     print(np.amax(hsv_map[:,:,i]),np.amin(hsv_map[:,:,i]))
+    gates_array = np.array(gate_list)
 
-    hsv_map = cv2.cvtColor(hsv_map, cv2.COLOR_HSV2RGB)
-    # plt.imshow(vx_map_sum, cmap='hsv')
-    # plt.imshow(hsv_map)
-    # plt.show()
+    return gates_array
 
-    return hsv_map
+def getGates(image_dims, labels):
+
+    gauss_maps = labels[:4]
+    vx_maps = labels[4:8]
+    vy_maps = labels[8:]
+
+    corners            = getCornersFromGaussMap(gauss_maps)
+    normalized_corners = normalizeLabels(corners, image_dims[0],image_dims[1])
+    resized_corners    = resizeLabels(normalized_corners, vx_maps.shape[1], vx_maps.shape[2])
+
+    connected_sides = connectSides(resized_corners, vx_maps, vy_maps)
+
+    connected_gates = connectGatesFromSides(connected_sides)
+
+    return connected_gates
+
+    # Alternativa
+    gates = getGatesfromCorners(image_dims, labels)
+
+# GRID FUNCTIONS
+
+# # Plot vec maps
+# def plotVecMaps(image_dims, vx_map, vy_map, side_gates, v_points=[]):
+# # v0_map = np.zeros((len(xc_grid),len(yc_grid)))
+#     v0_map = np.zeros_like(vx_map)
+
+#     vec_map_f = [vx_map, vy_map]
+#     vec_map_x = [vx_map, v0_map]
+#     vec_map_y = [v0_map, vy_map]
+
+#     vm = [vec_map_f, vec_map_x, vec_map_y]
+
+#     fig, ax = plt.subplots(1,3, figsize=[20,3])
+
+#     x = np.arange(0,image_dims[0], 1)
+#     y = np.arange(0,image_dims[1], 1)
+#     xx,yy = np.meshgrid(x,y)
+
+#     for i in range(len(ax)):
+#         ax[i].set_xlim(0,image_dims[1])
+#         ax[i].set_ylim(0,image_dims[0])
+#         ax[i].invert_yaxis()
+        
+#         for points in v_points:
+#             # Plot subpoints
+#             ax[i].scatter(points[:,1],points[:,0], c='c', alpha=0.5)
+#         for corners in side_gates:
+#             # Plot line
+#             ax[i].plot(corners[:,1],corners[:,0], c='r')
+#             # Plot corners points
+#             ax[i].scatter(corners[:,1],corners[:,0], c='r')
+#         # Plot vector map
+#         ax[i].quiver(yy, xx, vm[i][1].transpose(), -vm[i][0].transpose(), scale_units='xy', scale=1, pivot='mid')
+
+#     plt.show()
+
+
+
+# def points2grid(points, grid_size, c_grid):
+
+#     points_grid = [[int(points[0,0]//grid_size),int(points[0,1]//grid_size)]]
+
+#     for i in range(len(points)):
+#         next_point = [int(points[i,0]//grid_size),int(points[i,1]//grid_size)]
+#         if next_point in points_grid: # Avoid duplicates
+#             continue
+#         else:
+#             points_grid.append(next_point)
+
+#     points_grid = np.array(points_grid)
+
+#     plot_points = [[points[0,0],points[0,1]]]
+#     # Plot
+#     for i in range(len(points)):
+#         next_point = [int(points[i,0]//grid_size),int(points[i,1]//grid_size)]
+#         next_center = [c_grid[0][next_point[0]],c_grid[1][next_point[1]]]
+#         if next_center in plot_points: # Avoid duplicates
+#             continue
+#         else:
+#             plot_points.append(next_center)
+
+#     plot_points = np.array(plot_points)
+
+#     return points_grid, plot_points

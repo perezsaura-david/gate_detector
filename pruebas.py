@@ -1,29 +1,34 @@
-from matplotlib.pyplot import show
-from PAF import *
-from createTags import *
-from skimage.draw import line
-import random, time
-import torch
+# from PAF import integratePathBtwCorners
+
+import cv2, torch
+import numpy as np
 from tqdm import tqdm
+
+from createTags import PAFDataset
 from PlotUtils import showLabels
+from utils import normalizeLabels, resizeLabels
+from PAF import getGates
+
+
+
 
 if __name__ == "__main__":
 
-    # Usar coordenadas de una images: origen en esquina superior izquierda
-    th_dist = 5
-    # img_size = [240,480]
-    image_dims = [50,100]
-    # img_size = [4,8]
+    # # Usar coordenadas de una images: origen en esquina superior izquierda
+    # th_dist = 5
+    # # img_size = [240,480]
+    # image_dims = [50,100]
+    # # img_size = [4,8]
 
-    # gate1 = [[55,55],[155,415]]
-    # gate2 = [[205,305],[15,155]]
-    # gate3 = [[15,25],[35,450]]
+    # # gate1 = [[55,55],[155,415]]
+    # # gate2 = [[205,305],[15,155]]
+    # # gate3 = [[15,25],[35,450]]
 
-    gate1 = [[45,5],[15,81]]
-    gate2 = [[40,60],[20,10]]
-    gate3 = [[1,2],[40,90]]
+    # gate1 = [[45,5],[15,81]]
+    # gate2 = [[40,60],[20,10]]
+    # gate3 = [[1,2],[40,90]]
 
-    gates_corners = [gate1,gate2,gate3]
+    # gates_corners = [gate1,gate2,gate3]
 
     # gates_corners = [[[25,50],[25,0]],
     #                  [[25,50],[0,0]],
@@ -48,7 +53,13 @@ if __name__ == "__main__":
 
     for i in tqdm(range(len(dataset))):
 
-        image, labels = dataset[3]
+        image, labels = dataset[i]
+
+        if type(image) == torch.Tensor:
+            # print(image.shape)
+            image = image.numpy() * 255
+            image = np.array(image,dtype=np.uint8)
+            image = np.transpose(image,(1,2,0))
 
         labels = labels.detach().numpy()
 
@@ -59,76 +70,30 @@ if __name__ == "__main__":
         else:
             continue
 
-        corners = labels[:4]
-        vx_map = labels[4:8]
-        vy_map = labels[8:]
+exit()
 
-        if len(points) > 0:
-            plt.scatter(points[0,:,0],points[0,:,1], c='r')
-        if len(points) > 1:
-            plt.scatter(points[1,:,0],points[1,:,1], c='g')
-        if len(points) > 2:
-            plt.scatter(points[2,:,0],points[2,:,1], c='b')
-        if len(points) > 3:
-            plt.scatter(points[3,:,0],points[3,:,1], c='y')
 
-        if len(lines) > 0:
-            plt.plot(lines[0,:,0,0],lines[0,:,0,1], c='r')
-        if len(lines) > 1:
-            plt.plot(lines[1,:,0,0],lines[1,:,0,1], c='g')
-        if len(lines) > 2:
-            plt.plot(lines[2,:,0,0],lines[2,:,0,1], c='b')
-        if len(lines) > 3:
-            plt.plot(lines[3,:,0,0],lines[3,:,0,1], c='y')
+if len(points) > 0:
+    plt.scatter(points[0,:,0],points[0,:,1], c='r')
+if len(points) > 1:
+    plt.scatter(points[1,:,0],points[1,:,1], c='g')
+if len(points) > 2:
+    plt.scatter(points[2,:,0],points[2,:,1], c='b')
+if len(points) > 3:
+    plt.scatter(points[3,:,0],points[3,:,1], c='y')
 
-        # ## Corners
-        # gauss_map = torch.zeros((1,corners.shape[1],corners.shape[2]))
-        # map =None
-        # for j, map in enumerate(corners):
-        #     gauss_map[0] += map
-        #     cv2.imshow('label'+str(j), map*5)
-
-        # gauss_map_img, gate_img = plotGates(image,gauss_map,'Gaussian',show = True)
-
-        # vx_map_sum = np.zeros_like(vx_map[0])
-        # for map in vx_map:
-        #     vx_map_sum += map
-
-        # vy_map_sum = np.zeros_like(vy_map[0])
-        # for map in vy_map:
-        #     vy_map_sum += map
-
-        # img = plotPAFimg(vx_map_sum,vy_map_sum)
-
-        # # Show labels
-        # # Corner labels
-        # gauss_top = cv2.hconcat((corners[0],corners[1]))
-        # gauss_bot = cv2.hconcat((corners[3],corners[2]))
-        # gauss_corners = cv2.vconcat((gauss_top,gauss_bot))
-        # gauss_corners = cv2.cvtColor(gauss_corners*5, cv2.COLOR_GRAY2BGR)
-
-        # cv2.imshow('PAF',img)
-        p = cv2.waitKey()
-
-        if p == 27:
-            break
-        else:
-            continue
-
-    # time0=time.time()
-    # vx_map_sum, vy_map_sum, v_points_plot = generatePAF(side_gates, image_dims, th_dist)
-    # time_end = (time.time() - time0)
-    # print('Time spend:', time_end, 's')
-
-    # plotPAFimg(vx_map_sum,vy_map_sum)
-
-    # plotVecMaps(img_size, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
-    exit()
+if len(lines) > 0:
+    plt.plot(lines[0,:,0,0],lines[0,:,0,1], c='r')
+if len(lines) > 1:
+    plt.plot(lines[1,:,0,0],lines[1,:,0,1], c='g')
+if len(lines) > 2:
+    plt.plot(lines[2,:,0,0],lines[2,:,0,1], c='b')
+if len(lines) > 3:
+    plt.plot(lines[3,:,0,0],lines[3,:,0,1], c='y')
 
 # Tamaño de celda por pixel. -> Done
 # Representar con HSV -> Done
 # LineIterator OpenCV Iterar -> Done
-# Meter los vertices en un APO
 
 # integratePathBtwCorners
 def integrateSidePath(corners, vx_map_sum, vy_map_sum):
