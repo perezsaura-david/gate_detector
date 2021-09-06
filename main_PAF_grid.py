@@ -1,26 +1,4 @@
 from PAF_grid import *
-import random
-
-# Usar coordenadas de una images: origen en esquina superior izquierda
-grid_size = 20
-img_size = [480,240]
-
-gate1 = [[55,55],[415,155]]
-gate2 = [[105,205],[305,155]]
-gate3 = [[25,15],[450,35]]
-
-gates_corners = [gate1,gate2,gate3]
-
-side_gates = np.array(gates_corners)
-
-vx_map_sum, vy_map_sum, c_grid_plot, grid_plot, v_points_plot = generate_PAF(side_gates, img_size, grid_size)
-
-# plotVecMaps(img_size, grid_plot, c_grid_plot, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
-
-# Tamaño de celda por pixel.
-# Representar con HSV
-# LineIterator OpenCV Iterar 
-# Meter los vertices en un APO
 
 # integratePathBtwCorners
 def integrateSidePath(corners, vx_map_sum, vy_map_sum):
@@ -53,6 +31,24 @@ def integrateSidePath(corners, vx_map_sum, vy_map_sum):
     #     v_idx_map[x,y] = 1
 
     return v_idx, score_x, score_y
+
+# Usar coordenadas de una images: origen en esquina superior izquierda
+grid_size = 20
+img_size = [480,240]
+
+gate1 = [[55,55],[415,155]]
+gate2 = [[105,205],[305,155]]
+gate3 = [[25,15],[450,35]]
+
+gates_corners = [gate1,gate2,gate3]
+
+side_gates = np.array(gates_corners)
+
+vx_map_sum, vy_map_sum, c_grid_plot, grid_plot, v_points_plot = generate_PAF(side_gates, img_size, grid_size)
+
+plotVecMaps(img_size, grid_plot, c_grid_plot, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
+
+exit()
 
 corners_detected = []
 

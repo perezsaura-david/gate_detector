@@ -1,4 +1,4 @@
-import torch, cv2, json
+import torch, cv2, json, os
 import numpy as np
 from utils import * 
 from PAF import generatePAF 
@@ -7,6 +7,18 @@ import pdb
 # from scipy.signal import find_peaks
 from skimage.feature import peak_local_max
 # from skimage import data, img_as_float
+
+def image2net(image_name, path_images, image_dims):
+
+    image_file = os.path.join(path_images,image_name)
+    image = cv2.imread(image_file)
+    # Normalize image
+    image = cv2.resize(image,image_dims,interpolation = cv2.INTER_AREA)
+    image = image / 255
+    # Convert image to tensor
+    image_tensor = torch.Tensor(np.transpose(image,(2,0,1)))
+
+    return image_tensor
 
 class PAFDataset(torch.utils.data.Dataset):
     """
@@ -62,14 +74,14 @@ class PAFDataset(torch.utils.data.Dataset):
         if len(normalized_corners) > 0:
             for i in range(len(normalized_corners)):
                 corners = normalized_corners[i]
-                normalizedLabels = np.array(MakeGaussMap(image,corners, scale_factor))
+                normalizedLabels = np.array(makeGaussMap(image,corners, scale_factor))
                 normalizedLabels = normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
                 N_labels = torch.from_numpy(normalizedLabels)
                 labelsList.append(N_labels[0])
         else:
             for i in range(4):
                 corners = []
-                normalizedLabels = np.array(MakeGaussMap(image,corners, scale_factor))
+                normalizedLabels = np.array(makeGaussMap(image,corners, scale_factor))
                 normalizedLabels = normalizedLabels.reshape((1,normalizedLabels.shape[0],normalizedLabels.shape[1]))
                 N_labels = torch.from_numpy(normalizedLabels)
                 labelsList.append(N_labels[0])
@@ -119,28 +131,8 @@ class PAFDataset(torch.utils.data.Dataset):
                 vx_map, vy_map = generatePAF(image, corners_side, scale_factor, th_dist)
                 vx_map_total.append(torch.from_numpy(vx_map))
                 vy_map_total.append(torch.from_numpy(vy_map))
-            
-
-        # return vx_map_total, vy_map_total
-
-        # if len(normalizedLabels.shape) != 3:
-        #     print('aqui entro')
-        #     print(self.labelsDict[image_filename])
-        #     print(image_filename)
-        #     print(normalizedLabels)
-        #     print(normalizedLabels.shape)
         
-        # N4_labels = torch.zeros((4,normalizedLabels.shape[1],normalizedLabels.shape[2]))
-        # N8_paf = torch.zeros((8,vx_map.shape[0],vx_map.shape[1]))
         N12_labels = torch.zeros((12,normalizedLabels.shape[1],normalizedLabels.shape[2]))
-
-        # for i in range(4):
-        #     N4_labels[i] = labelsList[i]
-
-        # for i in range(4):
-        #     N8_paf[i] = vx_map_total[i]
-        # for i in range(4):
-        #     N8_paf[i+4] = vy_map_total[i]
 
         for i in range(4):
             # Corners

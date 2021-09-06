@@ -34,8 +34,8 @@ class GateNet(torch.nn.Module):
 
         if mode is None:
             raise ValueError('mode is not defined.')
-        elif mode == 'Vector':
-            self.mode = mode 
+        # elif mode == 'Vector':
+        #     self.mode = mode 
         elif mode == 'Gaussian' or mode == 'PAFGauss':
             self.mode = 'Gaussian'
         else:
@@ -56,12 +56,12 @@ class GateNet(torch.nn.Module):
         self.layer3 = resnet.layer3
         self.layer4 = resnet.layer4
 
-        if self.mode == 'Vector':
-            self.fc1 = nn.Linear(512*30*15, 256)
-            self.fc2 = nn.Linear(256, 64)
-            self.fc3 = nn.Linear(64, 8)
+        # if self.mode == 'Vector':
+        #     self.fc1 = nn.Linear(512*30*15, 256)
+        #     self.fc2 = nn.Linear(256, 64)
+        #     self.fc3 = nn.Linear(64, 8)
 
-        elif self.mode == 'Gaussian':
+        if self.mode == 'Gaussian':
             self.up1 = Upsample(512, 512)
             self.up2 = Upsample(768, 256)
             self.up3 = Upsample(384, 256)
@@ -93,50 +93,60 @@ class GateNet(torch.nn.Module):
 
     # 
     def forward(self,x):
-        # print("x:", x.shape)
+        print("input:", x.shape)
         x = self.relu(self.bn1(self.conv1(x)))
-        # print("l0:", x.shape)
+        print("l0:", x.shape)
         d1 = self.layer1(x)
         d2 = self.layer2(d1)
         d3 = self.layer3(d2)
         x = self.layer4(d3)
-        # print("l1:", d1.shape)
-        # print("l2:", d2.shape)
-        # print("l3:", d3.shape)
-        # print("x:",x.shape)
+        print("l1:", d1.shape)
+        print("l2:", d2.shape)
+        print("l3:", d3.shape)
+        print("x:",x.shape)
 
-        if self.mode == 'Vector':
-            x = F.relu(self.fc2(x))
-            x = F.relu(self.fc1(x))
-            x = F.relu(self.fc2(x))
-            x = torch.sigmoid(self.fc3(x))
+        # if self.mode == 'Vector':
+        #     x = F.relu(self.fc2(x))
+        #     x = F.relu(self.fc1(x))
+        #     x = F.relu(self.fc2(x))
+        #     x = torch.sigmoid(self.fc3(x))
 
-        elif self.mode == 'Gaussian':
+        if self.mode == 'Gaussian':
             # print("x:", x.shape)
 
             u1 = self.up1(x)
             # x = u1
             # x = d3 + u1
             x = torch.cat((u1,d3),1)
+            print("u1:", u1.shape)
+            print("x:",x.shape)
 
             u2 = self.up2(x)
             # x = u2
             # x = d2 + u2
             x = torch.cat((u2,d2),1)
+            print("u2:", u2.shape)
+            print("x:",x.shape)
 
             u3 = self.up3(x)
             x = u3
+            print("u3:", u3.shape)
+            print("x:",x.shape)
 
             # print("up1:",u1.shape)
             # print("up2:",u2.shape)
             # print("up3:",u3.shape)
 
             x = F.relu(self.conv_1(x))
-            # print("x:", x.shape)
+            print("x:", x.shape)
             x = self.conv_2(x)
+            print("x:", x.shape)
             x1 = torch.sigmoid(x[:,:4])
+            print("x1:", x1.shape)
             x2 = torch.tanh(x[:,4:])
+            print("x2:", x2.shape)
             x = torch.cat((x1,x2),1)
+            print("x:", x.shape)
             # x = torch.sigmoid(self.conv_2(x))
             # print("x:", x.shape)
             
@@ -168,10 +178,10 @@ class TrainableGateNet(pl.LightningModule):
         self.network = GateNet(mode)
 
         # DEFINE LOSSES
-        if mode == 'Vector':
-            self.loss_criterion = DetectionLoss()
-            print('Detection Loss')
-        elif mode == 'Gaussian' or mode == 'PAFGauss':
+        # if mode == 'Vector':
+        #     self.loss_criterion = DetectionLoss()
+        #     print('Detection Loss')
+        if mode == 'Gaussian' or mode == 'PAFGauss':
             # print('Continuous Loss')
             # self.loss_criterion = ContinuousFocalLoss()
             print('MSE Loss')
@@ -316,5 +326,4 @@ class ContinuousFocalLoss(nn.Module):
 if __name__ == "__main__":
     net=GateNet('PAFGauss')
     print(net)
-
 

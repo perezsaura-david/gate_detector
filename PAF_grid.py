@@ -1,44 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def get_corner_from_gauss():
-    # Function to get the points from the gaussian map
-
-    return
-
-def generate_PAF():
-    # Function to generate Part Affinity Fields from corner points
-
-    return
 
 # Make PAF map
-def makeVecMaps(grid_size, c_grid, corners_grid, v_points, vector_1):
+def makeVecMaps(grid_size, c_grid, corners_grid, v_points, vector_1, th_dist=2):
 
     xc_grid = c_grid[0]
     yc_grid = c_grid[1]
 
     vx_map = np.zeros((len(xc_grid),len(yc_grid)))
     vy_map = np.zeros((len(xc_grid),len(yc_grid)))
-    v0_map = np.zeros((len(xc_grid),len(yc_grid)))
 
     x_corner_grid = corners_grid[:,0]
     y_corner_grid = corners_grid[:,1]
 
-
-    # OPTION 1
-    # Find cells that vector crossed
-    # for i in range(len(v0_map)):
-    #     for j in range(len(v0_map[i])):
-    #         if [i,j] in v_points_grid:
-    #             vx_map[i,j] = 1
-    #             vy_map[i,j] = 1
-    # OPTION 2
     # Find cells which its center is at some distance from the points
-
-    # v_points, _ = points2grid(v_points,grid_size, c_grid)
-    
-    for i in range(len(v0_map)):
-        for j in range(len(v0_map[i])):
+    for i in range(len(vx_map)):
+        for j in range(len(vx_map[i])):
             # Limited by the corner points
             if (i < min(x_corner_grid) or i > max(x_corner_grid)):
                 continue
@@ -46,24 +24,21 @@ def makeVecMaps(grid_size, c_grid, corners_grid, v_points, vector_1):
                 continue
             for x,y in v_points:
                 dist = np.sqrt((xc_grid[i]-x)**2+(yc_grid[j]-y)**2)
-                if dist < grid_size:
-                    vx_map[i,j] = 1
-                    vy_map[i,j] = 1
-                elif dist < 2*grid_size:
-                    vx_map[i,j] = max(0.5,vx_map[i,j])
-                    vy_map[i,j] = max(0.5,vy_map[i,j])
-                # dist = np.sqrt((i-x)**2+(j-y)**2)
-                # if dist < 1:
-                #     vx_map[i,j] = 1
-                #     vy_map[i,j] = 1
-                # elif dist < 2:
-                #     vx_map[i,j] = max(0.5,vx_map[i,j])
-                #     vy_map[i,j] = max(0.5,vy_map[i,j])
+                grid_dist = dist / grid_size
+
+                if grid_dist < th_dist:
+                    if grid_dist < 1:
+                        value = 1
+                    else:
+                        value = 1/th_dist
+                    vx_map[i,j] = max(value,vx_map[i,j])
+                    vy_map[i,j] = max(value,vy_map[i,j])   
 
     vx_map = vx_map * vector_1[0]
     vy_map = vy_map * vector_1[1]
 
     return vx_map, vy_map
+
 
 def makeGrid(img_size,grid_size):
     # Make grid
@@ -83,6 +58,7 @@ def makeGrid(img_size,grid_size):
     c_grid = [xc_grid,yc_grid]
 
     return grid, c_grid
+
 
 def corners2Vector(side_corners, dist_subpoints):
 
@@ -158,7 +134,10 @@ def plotVecMaps(img_size, grid, c_grid, vx_map, vy_map, side_gates, v_points=[])
 
     xx,yy = np.meshgrid(c_grid[0],c_grid[1])
 
+    titles = ['vector','componente x', 'componente y']
+
     for i in range(len(ax)):
+        ax[i].set_title(titles[i])
         ax[i].set_xlim(0,img_size[0])
         ax[i].set_ylim(0,img_size[1])
         for x in grid[0]:
@@ -177,12 +156,6 @@ def plotVecMaps(img_size, grid, c_grid, vx_map, vy_map, side_gates, v_points=[])
         ax[i].quiver(xx, yy, vm[i][0], vm[i][1], scale_units='xy', scale=0.05, pivot='mid')
 
     plt.show()
-
-def integratePathBtwCorners():
-
-
-
-    return
 
 def points2grid(points, grid_size, c_grid):
 

@@ -1,18 +1,15 @@
 import torch
 import numpy as np
 
+from utils import calculateAffinityBtwCorners, corners2Vector, getCornersFromGaussMap, getCandidateSides, deleteCandidates
 
-from utils import corners2Vector, getCornersFromGaussMap, normalizeLabels, resizeLabels, integratePathBtwCorners
-
-# def get_corner_from_gauss():
-#     # Function to get the points from the gaussian map
-
-#     return
-
-# def generate_PAF():
-#     # Function to generate Part Affinity Fields from corner points
-
-#     return
+# FUNCTIONS: 
+#   makeVecMaps
+#   generatePAF
+#   getSidesFromCorners
+#   connectGatesFromSides
+#   checkGates
+#   getGates
 
 # Make PAF map
 def makeVecMaps(image_dims, corners, v_points, vector_1, th_dist):
@@ -27,14 +24,9 @@ def makeVecMaps(image_dims, corners, v_points, vector_1, th_dist):
                 continue
             if (j < (min(corners[:,1] - th_dist)) or j > (max(corners[:,1] + th_dist))):
                 continue
+            
             for x,y in v_points:
                 dist = np.sqrt((i-x)**2+(j-y)**2)
-                # if dist < th_dist:
-                #     vx_map[i,j] = 1
-                #     vy_map[i,j] = 1
-                # elif dist < 2*th_dist:
-                #     vx_map[i,j] = max(0.5,vx_map[i,j])
-                #     vy_map[i,j] = max(0.5,vy_map[i,j])
                 if dist < th_dist:
                     if dist < 1:
                         value = 1
@@ -47,6 +39,7 @@ def makeVecMaps(image_dims, corners, v_points, vector_1, th_dist):
     vy_map = vy_map * vector_1[1]
 
     return vx_map, vy_map
+
 
 def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
 
@@ -74,7 +67,6 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
                 corner[0] = int(round(corner[0] * width,0))
                 corner[1] = int(round(corner[1] * height,0))
 
-
             _, vector_1, v_points = corners2Vector(side_gate[0],side_gate[1])
 
             vx_map, vy_map = makeVecMaps(image_dims, side_gate, v_points, vector_1, th_dist)
@@ -82,153 +74,149 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
             vx_map_sum += vx_map
             vy_map_sum += vy_map
 
-            # v_points_plot.append(v_points)
-
     vx_map_sum = vx_map_sum.transpose()
     vy_map_sum = vy_map_sum.transpose()
 
-    return vx_map_sum, vy_map_sum #, v_points_plot # v(x,y)_map_sum are required. The rest of the variables are for plotting only.
+    return vx_map_sum, vy_map_sum
 
-def connectSides(corners, vx_maps, vy_maps):
+
+# def connectSides(corners, vx_maps, vy_maps):
+
+#     # Check points of the next corner
+#     connected_sides_list = []
+#     # Each 4 possible corners
+#     for c_i in range(4):    
+#         corner_connected_list = []
+#         # Each point detected of this corner
+#         for p_i in range(len(corners[c_i])):  
+#             # Next corner
+#             c_j = (c_i + 1) % 4
+
+#             score_point_list = []
+#             # Each point detected of this corner
+#             for p_j in range(len(corners[c_j])):  
+#                 vx_map = vx_maps[c_i]
+#                 vy_map = vy_maps[c_i]
+#                 corner_0 = corners[c_i][p_i]
+#                 corner_1 = corners[c_j][p_j]
+#                 score_point = integratePathBtwCorners(corner_0,corner_1,vx_map,vy_map)
+#                 score_point_list.append(score_point)
+
+#             idx_point_selected = np.argmin(score_point_list)
+#             corner_connected_list.append([corners[c_i][p_i],corners[c_j][idx_point_selected]])
+
+#         connected_sides_list.append(corner_connected_list)
+#         connected_sides_array = np.array(connected_sides_list)
+
+#     return connected_sides_array
+
+def getSidesFromCorners(corners, vx_maps, vy_maps, conf_th = 0.9):
 
     # Check points of the next corner
     connected_sides_list = []
     # Each 4 possible corners
-    for c_i in range(4):    
-        corner_connected_list = []
-        # Each point detected of this corner
-        for p_i in range(len(corners[c_i])):  
-            # score_corner_list = []
-            # Next corner
-            c_j = (c_i + 1) % 4
-            # if c_i == 3:
-            #     c_j = 0
-            # else:
-            #     c_j = c_i + 1
+    for c_i in range(4):
+        connected_side_list = []
+        # next corner
+        c_j = (c_i + 1) % 4
 
-            score_point_list = []
-            # Each point detected of this corner
-            for p_j in range(len(corners[c_j])):  
-                vx_map = vx_maps[c_i]
-                vy_map = vy_maps[c_i]
-                corner_0 = corners[c_i][p_i]
-                corner_1 = corners[c_j][p_j]
-                score_point = integratePathBtwCorners(corner_0,corner_1,vx_map,vy_map)
-                score_point_list.append(score_point)
+        candidate_sides = getCandidateSides(corners,c_i,c_j)
+        score_list = []
+        for side in candidate_sides:
+            # score_int = integratePathBtwCorners(side[0],side[1],vx_maps[c_i],vy_maps[c_i])
+            score = calculateAffinityBtwCorners(side[0],side[1],vx_maps[c_i],vy_maps[c_i])
+            score_list.append(score)
+        # Select the best candidate
+        while candidate_sides != []:
+            # idx_selected = np.argmin(score_list) # Integrate
+            idx_selected = np.argmax(score_list) # Affinity
+            # connected_side_list.append(candidate_sides[idx_selected])
+            side_dict = {'side':candidate_sides[idx_selected], 'score': score_list[idx_selected]}
+            connected_side_list.append(side_dict)
 
-            idx_point_selected = np.argmin(score_point_list)
-            corner_connected_list.append([corners[c_i][p_i],corners[c_j][idx_point_selected]])
+            candidate_sides, score_list = deleteCandidates(candidate_sides, score_list, idx_selected)
+        connected_sides_list.append(connected_side_list)
 
-        connected_sides_list.append(corner_connected_list)
-        connected_sides_array = np.array(connected_sides_list)
+        # connected_sides_array = np.array(connected_sides_list)
 
-    return connected_sides_array
+    return connected_sides_list
+
+
+    # if np.array_equal(sides[0][0][1],sides[1][0][0]):
+
+    #     print(sides[0][0][1] == sides[1][0][0])
+
+    # else:
+    #     print('False')
+
+        # corner_connected_list = []
+        # # Each point detected of this corner
+        # for p_i in range(len(corners[c_i])):  
+        #     # score_corner_list = []
+        #     # Next corner
+            
 
 def connectGatesFromSides(side_list):
 
-    side_list = np.array(side_list)
+    # side_list = np.array(side_list)
+    n_points = []
+    for side in side_list:
+        n_points.append(len(side))
+    n_gates = max(n_points)
 
     gate_list = []
-    print(side_list, side_list.shape)
-    for i in range(side_list.shape[1]):
-        gate = []
+    for i in range(n_gates):
+        gate = {'id':i,'c0':None,'c1':None,'c2':None,'c3':None,'c4':None,'n_corners':0,'score':0}
+        # gate = []
         for j in range(4):
             if j == 0:
-                gate.append(side_list[j,i,0])
-                gate.append(side_list[j,i,1])
+                if len(side_list[j]) >  i:
+                    gate['c0'] = side_list[j][i]['side'][0]
+                    gate['c1'] = side_list[j][i]['side'][1]
+                else:
+                    continue
             else:
                 for k in range(len(side_list[j])):
-
-                    if np.array_equal(gate[-1],side_list[j,k,0]):
-                        gate.append(side_list[j,k,1])
+                    c_prev = 'c'+str(j)
+                    if np.array_equal(gate[c_prev],side_list[j][k]['side'][0]):
+                        c_name = 'c'+str(j+1)
+                        gate[c_name] = side_list[j][k]['side'][1]
+                        # gate.append(side_list[j][k][1])
+                    elif (j == 3) & (np.array_equal(gate['c0'],side_list[j][k]['side'][1])):
+                        gate['c3'] = side_list[j][i]['side'][0]
+                        gate['c4'] = side_list[j][i]['side'][1]
         # gate = gate[:-1] # Last point is useful just to check if the gate is correct. It may be deleted.
         gate_list.append(gate)
-    
-    gates_array = np.array(gate_list)
 
-    return gates_array
+    return gate_list
 
-def getGates(image_dims, labels):
+def checkGates():
+
+    return
+
+def getSides(labels):
 
     gauss_maps = labels[:4]
     vx_maps = labels[4:8]
     vy_maps = labels[8:]
 
-    corners            = getCornersFromGaussMap(gauss_maps)
-    normalized_corners = normalizeLabels(corners, image_dims[0],image_dims[1])
-    resized_corners    = resizeLabels(normalized_corners, vx_maps.shape[1], vx_maps.shape[2])
+    corners         = getCornersFromGaussMap(gauss_maps)
+    connected_sides = getSidesFromCorners(corners, vx_maps, vy_maps)
+    
+    return connected_sides
 
-    connected_sides = connectSides(resized_corners, vx_maps, vy_maps)
+def getGates(connected_sides):
 
-    connected_gates = connectGatesFromSides(connected_sides)
+    connected_gates_dict = connectGatesFromSides(connected_sides)
 
-    return connected_gates
+    return connected_gates_dict
 
     # Alternativa
-    gates = getGatesfromCorners(image_dims, labels)
+    # gates = getGatesfromCorners(image_dims, labels)
 
-# GRID FUNCTIONS
+def detectGates(labels):
 
-# # Plot vec maps
-# def plotVecMaps(image_dims, vx_map, vy_map, side_gates, v_points=[]):
-# # v0_map = np.zeros((len(xc_grid),len(yc_grid)))
-#     v0_map = np.zeros_like(vx_map)
+    detected_sides = getSides(labels)
+    detected_gates = getGates(detected_sides)
 
-#     vec_map_f = [vx_map, vy_map]
-#     vec_map_x = [vx_map, v0_map]
-#     vec_map_y = [v0_map, vy_map]
-
-#     vm = [vec_map_f, vec_map_x, vec_map_y]
-
-#     fig, ax = plt.subplots(1,3, figsize=[20,3])
-
-#     x = np.arange(0,image_dims[0], 1)
-#     y = np.arange(0,image_dims[1], 1)
-#     xx,yy = np.meshgrid(x,y)
-
-#     for i in range(len(ax)):
-#         ax[i].set_xlim(0,image_dims[1])
-#         ax[i].set_ylim(0,image_dims[0])
-#         ax[i].invert_yaxis()
-        
-#         for points in v_points:
-#             # Plot subpoints
-#             ax[i].scatter(points[:,1],points[:,0], c='c', alpha=0.5)
-#         for corners in side_gates:
-#             # Plot line
-#             ax[i].plot(corners[:,1],corners[:,0], c='r')
-#             # Plot corners points
-#             ax[i].scatter(corners[:,1],corners[:,0], c='r')
-#         # Plot vector map
-#         ax[i].quiver(yy, xx, vm[i][1].transpose(), -vm[i][0].transpose(), scale_units='xy', scale=1, pivot='mid')
-
-#     plt.show()
-
-
-
-# def points2grid(points, grid_size, c_grid):
-
-#     points_grid = [[int(points[0,0]//grid_size),int(points[0,1]//grid_size)]]
-
-#     for i in range(len(points)):
-#         next_point = [int(points[i,0]//grid_size),int(points[i,1]//grid_size)]
-#         if next_point in points_grid: # Avoid duplicates
-#             continue
-#         else:
-#             points_grid.append(next_point)
-
-#     points_grid = np.array(points_grid)
-
-#     plot_points = [[points[0,0],points[0,1]]]
-#     # Plot
-#     for i in range(len(points)):
-#         next_point = [int(points[i,0]//grid_size),int(points[i,1]//grid_size)]
-#         next_center = [c_grid[0][next_point[0]],c_grid[1][next_point[1]]]
-#         if next_center in plot_points: # Avoid duplicates
-#             continue
-#         else:
-#             plot_points.append(next_center)
-
-#     plot_points = np.array(plot_points)
-
-#     return points_grid, plot_points
+    return detected_gates
