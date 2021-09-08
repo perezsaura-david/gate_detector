@@ -42,6 +42,11 @@ gate3 = [[25,15],[450,35]]
 
 gates_corners = [gate1,gate2,gate3]
 
+gate1 = [[55,105],[415,55]]
+gate2 = [[105,155],[305,205]]
+
+gates_corners = [gate1,gate2]
+
 side_gates = np.array(gates_corners)
 
 vx_map_sum, vy_map_sum, c_grid_plot, grid_plot, v_points_plot = generate_PAF(side_gates, img_size, grid_size)

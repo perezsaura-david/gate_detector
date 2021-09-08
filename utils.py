@@ -62,6 +62,21 @@ def resizeLabels(label_list, new_width, new_height):
 
     return resized_labels
 
+def factorLabels(label_list, factor):
+
+    resized_labels = []
+
+    for label in label_list:
+        resized_label = np.zeros_like(label, dtype=np.int32)
+        resized_label[:,0] = label[:,0] * factor
+        resized_label[:,1] = label[:,1] * factor
+        resized_labels.append(resized_label)
+
+    # normalized_labels = np.array(normalized_labels)
+
+    return resized_labels
+
+
 # For non-grouped labels
 # def normalizeLabels(labels, original_width, original_height):
 #     normalizedLabels = []
@@ -94,6 +109,44 @@ def groupCorners(points):
     
     # corner_array = np.array(corner_list)
     return corner_list
+
+def orderCorners(points):
+
+    if len(points) == 0:
+        return points
+
+    points = np.array(points)
+    x_mean = np.mean(points[:,:,0])
+    y_mean = np.mean(points[:,:,1])
+
+    new_corner_list = [[],[],[],[]]
+
+    
+    for corner in points:
+        for point in corner:
+            x = point[0]
+            y = point[1]
+            if ((x < x_mean) & (y < y_mean)):
+                new_corner_list[0].append(point)
+            if ((x > x_mean) & (y < y_mean)):
+                new_corner_list[1].append(point)
+            if ((x > x_mean) & (y > y_mean)):
+                new_corner_list[2].append(point)
+            if ((x < x_mean) & (y > y_mean)):
+                new_corner_list[3].append(point)
+
+    return new_corner_list
+
+def clearLabels(image_name,labels):
+    if image_name == 'IMG_9195.JPG':
+        labels[0] = []
+        labels = []
+
+    if image_name == 'IMG_9196.JPG':
+        labels[0] = []
+        labels = []
+
+    return labels
 
 
 def corners2Vector(corner_0,corner_1):

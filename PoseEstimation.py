@@ -53,9 +53,9 @@ def getCameraParams():
             # print('Done')
             images_found.append(fname)
             # imgshow = img #cv2.resize(img, (960, 540)) 
-            cv2.imshow('img', img)
-            print('Press ANY key to continue')
-            cv2.waitKey()
+            # cv2.imshow('img', img)
+            # print('Press ANY key to continue')
+            # cv2.waitKey()
         # else:
             # print('Corners not found')
     print('Time elapsed finding images:', time.time() - time_0)
@@ -92,6 +92,7 @@ def estimatePose(image_points, camera_matrix):
 
     # gate_size = 2.4384 # meters
     # object_points = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]]) * gate_size
+    gate_size = 2.4384 # meters
     gate_size = 1.2192 # meters
     object_points = np.array([[-1,-1,0],[1,-1,0],[1,1,0],[-1,1,0]]) * gate_size
 

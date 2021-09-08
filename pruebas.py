@@ -8,7 +8,8 @@ from PAF import detectGates
 from PoseEstimation import estimateGatePose
 from PoseEstimation import getCameraParams
 from PlotUtils  import showLabels
-
+from utils import getCornersFromGaussMap
+from metrics import getDetectionMetrics
 
 
 
@@ -20,7 +21,7 @@ if __name__ == "__main__":
 
     dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
-    camera_matrix = getCameraParams()
+    # camera_matrix = getCameraParams()
 
     for i in tqdm(range(len(dataset))):
 
@@ -34,12 +35,27 @@ if __name__ == "__main__":
         if type(labels) == torch.Tensor:
             labels = labels.detach().numpy()
 
+
+        gauss_maps = labels[:4]
+        corners    = getCornersFromGaussMap(gauss_maps)
+        print(corners)
+
+        
+
+
+        getDetectionMetrics(corners)
+
+
+        exit()
+
+
         detected_gates = detectGates(labels)
-        pose_estimations = estimateGatePose(detected_gates, camera_matrix)
+        print(detected_gates)
+        # pose_estimations = estimateGatePose(detected_gates, camera_matrix)
 
-        print('Pose estimation',pose_estimations)
+        # print('Pose estimation',pose_estimations)
 
-        p = showLabels(image, labels, camera_matrix)
+        p = showLabels(image, labels)
 
         if p == 27 or p == ord('q'):
             break

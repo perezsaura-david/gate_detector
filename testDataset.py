@@ -1,6 +1,7 @@
+from metrics import getDetectionMetrics
 from PAF import detectGates
 from PoseEstimation import getCameraParams
-from utils import groupCorners
+from utils import groupCorners, normalizeLabels, resizeLabels, orderCorners, clearLabels
 import torch, json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,6 +21,9 @@ def showCreatedDataset():
     dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
     for i in tqdm(range(len(dataset))):
+        
+        i = 7981
+        # i = 8839
 
         image, labels = dataset[i]
         # image1, labels1 = dataset[i+1]
@@ -63,6 +67,8 @@ def checkDataset(show):
         image_name = filenames[i]
         labels = labelsDict[image_name]
         points = groupCorners(labels[0])
+        points = clearLabels(image_name,points)
+        points = orderCorners(points)
         points = np.array(points)
         n_points = len(points)
         if not (n_points > 0):
@@ -72,7 +78,8 @@ def checkDataset(show):
         if n_points < 4:
             not4_list.append([image_name], n_points)
 
-
+        # print(i)
+        # for corner in points
         x_mean = np.mean(points[:,:,0])
         y_mean = np.mean(points[:,:,1])
         # x_hlimit = (max(points[:,:,0])+min(points[:,:,0]))/2
@@ -142,9 +149,30 @@ def checkDataset(show):
 
 if __name__ == "__main__":
 
-    camera_matrix = getCameraParams()
-    print(camera_matrix)
-    detectGates()
+    # Load training dataset
+    # PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
+    # PATH_IMAGES  = "./Dataset/Data_Training/"
+    # image_dims = (480,368)
 
-    showCreatedDataset()
-    # checkDataset(show=True)
+    # with open(PATH_LABELS,'r') as json_file:
+    #     labelsDict = json.load(json_file)
+    # filenames=[]
+    # for key in labelsDict.keys():
+    #     filenames.append(key)
+    
+    # gt = []
+    # for i in tqdm(range(len(filenames))):
+    #     flag_show = False
+    #     image_name = filenames[i]
+    #     labels = labelsDict[image_name]
+    #     points = groupCorners(labels[0])
+    #     gt.append(points)
+
+    # det_metrics = getDetectionMetrics(gt,gt)
+
+    # camera_matrix = getCameraParams()
+    # print(camera_matrix)
+    # detectGates()
+
+    # showCreatedDataset()
+    checkDataset(show=False)

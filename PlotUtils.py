@@ -41,6 +41,19 @@ def addCorners2Image(image, corners):
 
     return image
 
+def addDetections2Image(image, corners, gt, size=3):
+
+    if gt:
+        color = (255,0,0) # gt
+    else:
+        color = (0,255,0) # detections
+
+    for i in range(4):
+        for j in range(len(corners[i])):
+            cv2.circle(image, corners[i][j][::-1], size, color, -1)
+
+    return image
+
 def addGates2Image(image, gates):
 
     resized_gates  = gates2plot(gates)
@@ -93,7 +106,7 @@ def addImgCenter2Image(image, camera_matrix):
 
 
 
-def showLabels(image, labels, camera_matrix):
+def showLabels(image, labels):
 
     ### LABELS ###
 
@@ -183,6 +196,8 @@ def showLabels(image, labels, camera_matrix):
 
     # Show results
     gauss_map_img   = cv2.cvtColor(gauss_map_img, cv2.COLOR_GRAY2BGR)
+    gauss_map_img[:,:,:2] *= 0
+    print(gauss_map_img.shape)
 
     # Add border to individual images
     border_width = 1
@@ -196,7 +211,7 @@ def showLabels(image, labels, camera_matrix):
 
     # image = addGates2Image(image, detected_gates)
     image = addCorners2Image(image, resized_coords)
-    image = addImgCenter2Image(image, camera_matrix)
+    # image = addImgCenter2Image(image, camera_matrix)
     cv2.imshow('Detections', image)
 
     # cv2.imshow('Corners', b_gauss_corners_img)
