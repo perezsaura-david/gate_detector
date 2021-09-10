@@ -40,7 +40,7 @@ class PAFDataset(torch.utils.data.Dataset):
 
         with open(path_labels,'r') as json_file:
             self.labelsDict = json.load(json_file)
-
+            
         for key in self.labelsDict.keys():
             self.filenames.append(key)
 
@@ -88,6 +88,7 @@ class PAFDataset(torch.utils.data.Dataset):
                 
         normalized_corners = np.array(normalized_corners)
 
+
         # Create PAF vectorial maps
         th_dist = 5 # Distance of the line between corners to which the vector map is applied
 
@@ -104,12 +105,10 @@ class PAFDataset(torch.utils.data.Dataset):
         if len(normalized_corners) > 0:
             # print("Modificar para menos de 4 esquinas detectadas")
             n_gates = normalized_corners.shape[1]
-            
             # Loop on every one of the 4 corners of a gate
             for i in range(len(normalized_corners)):
                 # How many points corresponding to this corner has been detected (number of gates in the image)
                 n_detected_points = len(normalized_corners[i])
-                # print(n_gates, n_detected_points)
                 if n_gates != n_detected_points:
                     print("Number of points of each corner must be equal to number of gates")
                 for j in range(n_gates):

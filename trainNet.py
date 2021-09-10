@@ -2,13 +2,13 @@ import os
 from GateNet import *
 from pytorch_lightning import Trainer
 
-LOAD_FROM_CHECKPOINT = False
+LOAD_FROM_CHECKPOINT = True
 
 ##Train Step
 model = TrainableGateNet('PAFGauss')
 
 if LOAD_FROM_CHECKPOINT == True:
-    PATH = "./checkpoints/July-08-2021_19_38PM_GateNet_3.pth"
+    PATH = "./checkpoints/August-04-2021_09_53AM_GateNet_49.pth"
     model.load_state_dict(torch.load(PATH))
     print ('LOADING CHECKPOINT ')
 

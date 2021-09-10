@@ -1,13 +1,14 @@
 
+import cv2
 import torch
 import numpy as np
 from tqdm import tqdm
 
 from createTags import PAFDataset
 from PAF import detectGates
-from PoseEstimation import estimateGatePose
+from PoseEstimation import estimateGatePose, projectAxis
 from PoseEstimation import getCameraParams
-from PlotUtils  import showLabels
+from PlotUtils  import addAxis2Image, showLabels
 from utils import getCornersFromGaussMap
 from metrics import getDetectionMetrics
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
 
     dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
-    # camera_matrix = getCameraParams()
+    camera_matrix, distorsion = getCameraParams()
 
     for i in tqdm(range(len(dataset))):
 
@@ -40,22 +41,31 @@ if __name__ == "__main__":
         corners    = getCornersFromGaussMap(gauss_maps)
         print(corners)
 
-        
-
-
-        getDetectionMetrics(corners)
-
-
-        exit()
-
+        # getDetectionMetrics(corners)
 
         detected_gates = detectGates(labels)
+
+
+
+
         print(detected_gates)
-        # pose_estimations = estimateGatePose(detected_gates, camera_matrix)
+        gate_corners, gate_estimations = estimateGatePose(detected_gates, camera_matrix)
 
-        # print('Pose estimation',pose_estimations)
+        for i in range(len(gate_corners)):
 
-        p = showLabels(image, labels)
+            print('Gate estimation',gate_estimations[i])
+
+            gate_points = gate_corners[i]
+            gate_rot = gate_estimations[i][0]
+            gate_pos = gate_estimations[i][1]
+
+            imgpoints = projectAxis(gate_rot,gate_pos,camera_matrix,distorsion)
+            image = addAxis2Image(image,gate_points, imgpoints)
+        
+        cv2.imshow('Ejes',image)
+        p = cv2.waitKey()
+
+        # p = showLabels(image, labels)
 
         if p == 27 or p == ord('q'):
             break

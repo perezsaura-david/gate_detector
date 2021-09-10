@@ -14,15 +14,19 @@ from PlotUtils  import showLabels
 
 def showCreatedDataset():
 
-    PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
-    PATH_IMAGES  = "./Dataset/Data_Training/"
+
+    PATH_LABELS  = "./Dataset/adam_labels_parsed.json"
+    PATH_LABELS  = "./Dataset/out.json"
+    PATH_IMAGES  = "./Dataset/Data_Adam/"
+    # PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
+    # PATH_IMAGES  = "./Dataset/Data_Training/"
     image_dims = (480,360)
 
     dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
     for i in tqdm(range(len(dataset))):
         
-        i = 7981
+        # i = 7981
         # i = 8839
 
         image, labels = dataset[i]
@@ -39,7 +43,7 @@ def showCreatedDataset():
         if type(labels) == torch.Tensor:
             labels = labels.detach().numpy()
 
-        p, detected_gates = showLabels(image, labels)
+        p = showLabels(image, labels)
 
         if p == 27 or p == ord('q'):
             break
@@ -174,5 +178,5 @@ if __name__ == "__main__":
     # print(camera_matrix)
     # detectGates()
 
-    # showCreatedDataset()
-    checkDataset(show=False)
+    showCreatedDataset()
+    # checkDataset(show=False)

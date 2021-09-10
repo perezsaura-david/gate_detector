@@ -72,20 +72,23 @@ def getCameraParams():
     # print('rvecs',np.shape(rvecs), rvecs)
     # print('tvecs',np.shape(tvecs), tvecs)
 
-    return mtx
+    return mtx, dist
 
 def estimateGatePose(detected_gates, camera_matrix):
 
     gate_poses = []
+    gate_points = []
 
     for gate in detected_gates:
 
         gate_corners = np.array([gate['c0'][::-1],gate['c1'][::-1],gate['c2'][::-1],gate['c3'][::-1]], dtype=np.float32)
-        gate_pose = estimatePose(gate_corners, camera_matrix)
-        gate_poses.append(gate_pose)
+        gate_orientation, gate_position = estimatePose(gate_corners, camera_matrix)
+        gate_poses.append([gate_orientation, gate_position])
 
+        gate_corners = np.array(gate_corners, dtype=np.int32)
+        gate_points.append(gate_corners)
 
-    return gate_poses
+    return gate_points, gate_poses
 
 def estimatePose(image_points, camera_matrix):
     # print(image_points)
@@ -100,7 +103,15 @@ def estimatePose(image_points, camera_matrix):
     dist_coeffs = np.zeros((1,5))
     success, rotation_vector, translation_vector = cv2.solvePnP(objectPoints=object_points,imagePoints=image_points,cameraMatrix=camera_matrix,distCoeffs=dist_coeffs,)
 
-    return translation_vector
+    return rotation_vector, translation_vector
+
+def projectAxis(rvecs,tvecs,mtx,dist):
+
+    axis_3d = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+    # project 3D points to image plane
+    imgpts, jac = cv2.projectPoints(axis_3d, rvecs, tvecs, mtx, dist)
+
+    return imgpts
 
 
 

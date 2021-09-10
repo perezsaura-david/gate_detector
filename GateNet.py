@@ -9,8 +9,10 @@ import pytorch_lightning as pl
 import torch.nn as nn
 from createTags import *
 
-PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
-PATH_IMAGES  = "./Dataset/Data_Training/"
+# PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
+# PATH_IMAGES  = "./Dataset/Data_Training/"
+PATH_LABELS  = "./Dataset/out.json"
+PATH_IMAGES  = "./Dataset/Data_Adam/"
 # image_dims = (480,368)
 image_dims = (240,192)
 
@@ -167,7 +169,7 @@ class TrainableGateNet(pl.LightningModule):
         #load dataset
         self.data = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
         # Divide dataset between train and validation, p is the percentage of data for training
-        self.batch_size = 10 #65 #25
+        self.batch_size = 2 #65 #25
            
         p = 0.8
         (self.train_data, self.val_data) = torch.utils.data.random_split(self.data, (

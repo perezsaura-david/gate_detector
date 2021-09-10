@@ -45,8 +45,8 @@ def getImgDetMetrics(detections,gt, th_dist=5):
 
     else:
         print('gt = 0')
-        if len(detections[i]) > 0:
-            fp_img += len(detections[i])
+        if len(detections) > 0:
+            fp_img += len(detections)
             prec_img = 0
             rec_img = 0
 

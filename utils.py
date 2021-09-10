@@ -72,8 +72,6 @@ def factorLabels(label_list, factor):
         resized_label[:,1] = label[:,1] * factor
         resized_labels.append(resized_label)
 
-    # normalized_labels = np.array(normalized_labels)
-
     return resized_labels
 
 
@@ -153,7 +151,11 @@ def corners2Vector(corner_0,corner_1):
 
     # Calculate vector between corner points
     vector = np.array([corner_1[0] - corner_0[0],corner_1[1] - corner_0[1]])
-    vector_1 = vector / np.linalg.norm(vector)
+    vec_norm = np.linalg.norm(vector)
+    if vec_norm > 0:
+        vector_1 = vector / vec_norm
+    else:
+        vector_1 = vector
 
     # Divide the line in points
     v_points = np.array(list(zip(*line(int(corner_0[0]),int(corner_0[1]), int(corner_1[0]),int(corner_1[1])))))
