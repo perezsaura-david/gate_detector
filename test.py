@@ -25,14 +25,17 @@ test_metrics = True
 # PATH_IMAGES = "/home/dps/rosbag_gates/images/one_gate/2021-07-09-10-12-46/"
 # PATH_IMAGES  = "./Dataset/Data_Test/"
 # PATH_IMAGES = "./Dataset/Data_LeaderboardTesting/"
-PATH_IMAGES = "./Dataset/Data_Adam/"
+# PATH_IMAGES = "./Dataset/Data_Adam/gates/"
+PATH_IMAGES = "./Dataset/rosbag_gates/images/multiple_gates/2021-07-09-11-08-51/"
+# PATH_LABELS  = "./Dataset/out.json"
+
 test_metrics = False
 
 image_list = os.listdir(PATH_IMAGES)
 dataset = image_list
 
 # Load Model
-CHECKPOINT_PATH = "checkpoints/August-04-2021_09_53AM_GateNet_49.pth"
+CHECKPOINT_PATH = "checkpoints/September-10-2021_11_58AM_GateNet_18.pth"
 
 net = TrainableGateNet('PAFGauss')
 net.load_state_dict(torch.load(CHECKPOINT_PATH))

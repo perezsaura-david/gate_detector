@@ -80,7 +80,7 @@ def generatePAF(image, side_gates, scale_factor = 2, th_dist = 1):
     return vx_map_sum, vy_map_sum
 
 
-def getSidesFromCorners(corners, vx_maps, vy_maps, conf_th = 0.9):
+def getSidesFromCorners(corners, vx_maps, vy_maps, conf_th = 0.91):
 
     # Check points of the next corner
     connected_sides_list = []
@@ -99,10 +99,13 @@ def getSidesFromCorners(corners, vx_maps, vy_maps, conf_th = 0.9):
         # Select the best candidate
         while candidate_sides != []:
             # idx_selected = np.argmin(score_list) # Integrate
+            
             idx_selected = np.argmax(score_list) # Affinity
             # connected_side_list.append(candidate_sides[idx_selected])
-            side_dict = {'side':candidate_sides[idx_selected], 'score': score_list[idx_selected]}
-            connected_side_list.append(side_dict)
+            if score_list[idx_selected] > conf_th:
+                # print(score_list[idx_selected])
+                side_dict = {'side':candidate_sides[idx_selected], 'score': score_list[idx_selected]}
+                connected_side_list.append(side_dict)
 
             candidate_sides, score_list = deleteCandidates(candidate_sides, score_list, idx_selected)
         connected_sides_list.append(connected_side_list)

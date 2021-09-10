@@ -23,7 +23,7 @@ def getCameraParams():
 
     time_0 = time.time()
 
-    image_dims = (240,192)
+    # image_dims = (240,192)
     image_dims = (480,384)
     print('Finding images')
 
@@ -74,35 +74,54 @@ def getCameraParams():
 
     return mtx, dist
 
-def estimateGatePose(detected_gates, camera_matrix):
+def estimateGatePose(detected_gates, camera_matrix,dist_coeffs):
 
     gate_poses = []
     gate_points = []
 
     for gate in detected_gates:
-
+        print(gate)
+        if gate['c0'] is None  or  gate['c1'] is None or gate['c2'] is None or  gate['c3'] is None  or gate['c4'] is None:
+            continue
+    
         gate_corners = np.array([gate['c0'][::-1],gate['c1'][::-1],gate['c2'][::-1],gate['c3'][::-1]], dtype=np.float32)
-        gate_orientation, gate_position = estimatePose(gate_corners, camera_matrix)
+        gate_orientation, gate_position = estimatePose(gate_corners, camera_matrix,dist_coeffs)
         gate_poses.append([gate_orientation, gate_position])
 
         gate_corners = np.array(gate_corners, dtype=np.int32)
         gate_points.append(gate_corners)
-
+        
     return gate_points, gate_poses
 
-def estimatePose(image_points, camera_matrix):
+from PlotUtils import *
+def estimatePose(image_points, camera_matrix,dist_coeffs):
     # print(image_points)
 
     # gate_size = 2.4384 # meters
     # object_points = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]]) * gate_size
-    gate_size = 2.4384 # meters
+    # gate_size = 2.4384 # meters
     gate_size = 1.2192 # meters
     object_points = np.array([[-1,-1,0],[1,-1,0],[1,1,0],[-1,1,0]]) * gate_size
-
+    print(image_points)
+    image_points = np.array(image_points, dtype=np.float32)
+    image_points = image_points * [1280/(480/2),720/(384/2)]
+    print(image_points)
+    # image = np.zeros((720,1280,3), np.uint8)
+    
+    # for point in image_points:
+    #     x ,y = point
+    #     print(x,y)
+    #     cv2.circle(image, [int(x),int(y)], 5, (255,255,255), -1)
+        
+    # cv2.imshow('img', image)
+    # cv2.waitKey(0)
+    
     # camera_matrix = cameraCalibration()
-    dist_coeffs = np.zeros((1,5))
+    # dist_coeffs = np.zeros((1,5))
     success, rotation_vector, translation_vector = cv2.solvePnP(objectPoints=object_points,imagePoints=image_points,cameraMatrix=camera_matrix,distCoeffs=dist_coeffs,)
-
+    print(success)
+    print(rotation_vector)
+    print(translation_vector)
     return rotation_vector, translation_vector
 
 def projectAxis(rvecs,tvecs,mtx,dist):

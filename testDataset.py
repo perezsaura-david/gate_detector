@@ -17,7 +17,7 @@ def showCreatedDataset():
 
     PATH_LABELS  = "./Dataset/adam_labels_parsed.json"
     PATH_LABELS  = "./Dataset/out.json"
-    PATH_IMAGES  = "./Dataset/Data_Adam/"
+    PATH_IMAGES  = "./Dataset/Data_Adam/gates/"
     # PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
     # PATH_IMAGES  = "./Dataset/Data_Training/"
     image_dims = (480,360)

@@ -180,9 +180,9 @@ def getCornersFromGaussMap(corner_maps):
     corners_detected = []
     for gauss_map in corner_maps:
 
-        g_map = cleanGaussianMap(gauss_map)
+        g_map = cleanGaussianMap(gauss_map,0.25)
 
-        coordinates = peak_local_max(g_map, min_distance=6)
+        coordinates = peak_local_max(g_map, min_distance=8)
         corners_detected.append(coordinates)
 
     return corners_detected

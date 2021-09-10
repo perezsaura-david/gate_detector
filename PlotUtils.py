@@ -154,7 +154,7 @@ def showLabels(image, labels):
 
     ### GATES ###
     detected_sides = getSides(labels)
-    # detected_gates = getGates(detected_sides)
+    detected_gates = getGates(detected_sides)
 
     ### Estimate pose ###
     # x = estimateGatePose(detected_gates)
@@ -235,7 +235,7 @@ def showLabels(image, labels):
     # image = addCorners2Image(image, resized_coords)
     # image = addImgCenter2Image(image, camera_matrix)
     image_gate = image.copy()
-    # image_gate = addGates2Image(image_gate, detected_gates)
+    image_gate = addGates2Image(image_gate, detected_gates)
     imge_side = image.copy()
     image = addSides2Image(image, detected_sides)
     image = addCorners2Image(image, resized_coords)
