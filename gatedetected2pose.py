@@ -1,7 +1,8 @@
+from PlotUtils import showLabels
 from PAF import getGates, getSides
 from PoseEstimation import estimateGatePose, getCameraParams
 from GateNet import TrainableGateNet
-from createTags import image2net
+from createTags import image2net, plotGates
 import torch, os, time
 import numpy as np
 from tqdm import tqdm
@@ -34,9 +35,11 @@ if __name__ == "__main__":
 
     avg = 0
     for i in tqdm(range(len(dataset))):
-
+        i = 87
         # TEST IMAGES
         image_name = dataset[i]
+        print(image_name)
+
         image = image2net(image_name, PATH_IMAGES, image_dims)
 
         net_input = torch.unsqueeze(image,0).to(device)
@@ -54,6 +57,8 @@ if __name__ == "__main__":
             image = image.numpy() * 255
             image = np.array(image,dtype=np.uint8)
             image = np.transpose(image,(1,2,0))
+
+        p = showLabels(image,labels)
 
         detected_sides = getSides(labels)
         # print(detected_sides)

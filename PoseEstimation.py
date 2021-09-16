@@ -100,12 +100,12 @@ def estimatePose(image_points, camera_matrix,dist_coeffs):
     # gate_size = 2.4384 # meters
     # object_points = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]]) * gate_size
     # gate_size = 2.4384 # meters
-    gate_size = 1.2192 # meters
-    object_points = np.array([[-1,-1,0],[1,-1,0],[1,1,0],[-1,1,0]]) * gate_size
-    print(image_points)
+    gate_size = 1.4
+    object_points = np.array([[-1,-1,0],[1,-1,0],[1,1,0],[-1,1,0]]) * gate_size / 2
+    # print(image_points)
     image_points = np.array(image_points, dtype=np.float32)
     image_points = image_points * [1280/(480/2),720/(384/2)]
-    print(image_points)
+    # print(image_points)
     # image = np.zeros((720,1280,3), np.uint8)
     
     # for point in image_points:
@@ -119,9 +119,7 @@ def estimatePose(image_points, camera_matrix,dist_coeffs):
     # camera_matrix = cameraCalibration()
     # dist_coeffs = np.zeros((1,5))
     success, rotation_vector, translation_vector = cv2.solvePnP(objectPoints=object_points,imagePoints=image_points,cameraMatrix=camera_matrix,distCoeffs=dist_coeffs,)
-    print(success)
-    print(rotation_vector)
-    print(translation_vector)
+    
     return rotation_vector, translation_vector
 
 def projectAxis(rvecs,tvecs,mtx,dist):

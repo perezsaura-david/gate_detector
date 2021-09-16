@@ -138,14 +138,20 @@ def connectGatesFromSides(side_list):
     n_gates = max(n_points)
 
     gate_list = []
+    print(side_list)
     for i in range(n_gates):
+        print(i)
         gate = {'id':i,'c0':None,'c1':None,'c2':None,'c3':None,'c4':None,'n_corners':0,'score':0}
         # gate = []
         for j in range(4):
+            print(i,j,side_list)
             if j == 0:
                 if len(side_list[j]) >  i:
                     gate['c0'] = side_list[j][i]['side'][0]
                     gate['c1'] = side_list[j][i]['side'][1]
+                    # side_list[j].pop(i)
+                    # print('gate',gate)
+                    # print('aferr',side_list)
                 else:
                     continue
             else:
@@ -154,11 +160,20 @@ def connectGatesFromSides(side_list):
                     if np.array_equal(gate[c_prev],side_list[j][k]['side'][0]):
                         c_name = 'c'+str(j+1)
                         gate[c_name] = side_list[j][k]['side'][1]
+                        # side_list[j].pop(k)
+                        # print('gate',gate)
+                        # print('aferr',side_list)
+                        gate['n_corners'] += 1
                         # gate.append(side_list[j][k][1])
                     elif (j == 3) & (np.array_equal(gate['c0'],side_list[j][k]['side'][1])):
                         gate['c3'] = side_list[j][i]['side'][0]
                         gate['c4'] = side_list[j][i]['side'][1]
+                        # side_list[j].pop(i)
+                        # print('gate',gate)
+                        # print('aferr',side_list)
+                        gate['n_corners'] += 2
         # gate = gate[:-1] # Last point is useful just to check if the gate is correct. It may be deleted.
+        print(gate)
         gate_list.append(gate)
 
     return gate_list

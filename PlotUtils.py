@@ -236,7 +236,7 @@ def showLabels(image, labels):
     # image = addImgCenter2Image(image, camera_matrix)
     image_gate = image.copy()
     image_gate = addGates2Image(image_gate, detected_gates)
-    imge_side = image.copy()
+    # image_side = image.copy()
     image = addSides2Image(image, detected_sides)
     image = addCorners2Image(image, resized_coords)
 

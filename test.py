@@ -22,11 +22,11 @@ test_metrics = True
 
 
 # # Load test dataset
-# PATH_IMAGES = "/home/dps/rosbag_gates/images/one_gate/2021-07-09-10-12-46/"
+PATH_IMAGES = "/home/dps/rosbag_gates/images/one_gate/2021-07-09-10-12-46/"
 # PATH_IMAGES  = "./Dataset/Data_Test/"
 # PATH_IMAGES = "./Dataset/Data_LeaderboardTesting/"
-# PATH_IMAGES = "./Dataset/Data_Adam/gates/"
-PATH_IMAGES = "./Dataset/rosbag_gates/images/multiple_gates/2021-07-09-11-08-51/"
+PATH_IMAGES = "./Dataset/Data_Adam/gates/"
+# PATH_IMAGES = "/home/dps/rosbag_gates/images/multiple_gates/2021-07-09-11-08-51/"
 # PATH_LABELS  = "./Dataset/out.json"
 
 test_metrics = False
@@ -35,7 +35,7 @@ image_list = os.listdir(PATH_IMAGES)
 dataset = image_list
 
 # Load Model
-CHECKPOINT_PATH = "checkpoints/September-10-2021_11_58AM_GateNet_18.pth"
+CHECKPOINT_PATH = "checkpoints/September-10-2021_11_36AM_GateNet_10.pth"
 
 net = TrainableGateNet('PAFGauss')
 net.load_state_dict(torch.load(CHECKPOINT_PATH))
@@ -80,6 +80,7 @@ for i in tqdm(range(len(dataset))):
     # TEST IMAGES
     # i = 9 # Test gate for PNP
     image_name = dataset[i]
+    # image_name = 'onegate_1_frame0376.jpg'
     # image_name = filenames[i]
     image = image2net(image_name, PATH_IMAGES, image_dims)
 
