@@ -54,6 +54,7 @@ class PAFDataset(torch.utils.data.Dataset):
         image_filename = self.filenames[key]
         # image_filename = "IMG_0688.JPG" # No corners detected example
         labels = self.labelsDict[image_filename]
+        print(labels)
         image = cv2.imread(self.path_images+image_filename)
 
         original_height , original_width , _ = image.shape
@@ -63,6 +64,9 @@ class PAFDataset(torch.utils.data.Dataset):
         image = image / 255
 
         grouped_labels = groupCorners(labels[0])
+        grouped_labels = clearLabels(image_filename,grouped_labels)
+        grouped_labels = orderCorners(grouped_labels)
+        grouped_labels = np.array(grouped_labels)
         normalized_corners = normalizeLabels(grouped_labels, original_width, original_height)
 
         scale_factor = 2

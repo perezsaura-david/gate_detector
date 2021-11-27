@@ -131,11 +131,11 @@ def plotVecMaps(img_size, grid, c_grid, vx_map, vy_map, side_gates, v_points=[])
     vm = [vec_map_f, vec_map_x, vec_map_y]
 
 
-    fig, ax = plt.subplots(1,3, figsize=[20,3])
+    fig, ax = plt.subplots(1,1, figsize=[10,5])
 
     xx,yy = np.meshgrid(c_grid[0],c_grid[1])
 
-    titles = ['vector','componente x', 'componente y']
+    titles = ['campo de afinidad de partes','componente x', 'componente y']
 
     lines = []
     points_ini = side_gates[:,0]
@@ -145,6 +145,8 @@ def plotVecMaps(img_size, grid, c_grid, vx_map, vy_map, side_gates, v_points=[])
             lines.append([p_i,p_e])
 
     lines = np.array(lines)
+
+    ax = [ax]
 
     n_axes = len(ax)
 
@@ -156,19 +158,19 @@ def plotVecMaps(img_size, grid, c_grid, vx_map, vy_map, side_gates, v_points=[])
             ax[i].axvline(x, linestyle='--', color='gray', linewidth=1, alpha=0.5) # vertical lines
         for y in grid[1]:
             ax[i].axhline(y, linestyle='--', color='gray', linewidth=1 ,alpha=0.5) # horizontal lines
-        for points in v_points:
-            # Plot subpoints
-            ax[i].scatter(points[:,0],points[:,1], c=[(0,1,0.5)], alpha=0.5, s=100)
-        for line in lines:
+        # for points in [v_points[1]]:
+        #     # Plot subpoints
+        #     ax[i].scatter(points[1:,0],points[1:,1], c=[(0,1,0.5)], alpha=0.5, s=400) # s=100
+        for line in [lines[3]]:
             ax[i].plot(line[:,0],line[:,1], c='gray', alpha=0.25, linewidth=6)
         # for point in points_ini:
         ax[i].scatter(points_ini[:,0],points_ini[:,1], c=[(1,0,0)], s=100)
         ax[i].scatter(points_end[:,0],points_end[:,1], c=[(1,1,0)], s=100)
         # for point in points_end:
         #     ax[i].scatter(point[:,0],point[:,1], c='b')
-        for corners in side_gates:
-            # Plot line
-            ax[i].plot(corners[:,0],corners[:,1], c=(0,0,1))
+        for corners in [side_gates[0]]:
+            # Plot selected lines
+            ax[i].plot(corners[:,0],corners[:,1], c=(0,1,0),linewidth=6)
             # Plot corners points
             # ax[i].scatter(corners[:,0],corners[:,1], c='r')
 

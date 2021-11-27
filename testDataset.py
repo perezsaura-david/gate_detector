@@ -15,17 +15,18 @@ from PlotUtils  import showLabels
 def showCreatedDataset():
 
 
-    PATH_LABELS  = "./Dataset/adam_labels_parsed.json"
-    PATH_LABELS  = "./Dataset/out.json"
-    PATH_IMAGES  = "./Dataset/Data_Adam/gates/"
-    # PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
-    # PATH_IMAGES  = "./Dataset/Data_Training/"
+    # PATH_LABELS  = "./Dataset/adam_labels_parsed.json"
+    # PATH_LABELS  = "./Dataset/out.json"
+    # PATH_IMAGES  = "./Dataset/Data_Adam/gates/"
+    PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
+    PATH_IMAGES  = "./Dataset/Data_Training/"
     image_dims = (480,360)
 
     dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
     for i in tqdm(range(len(dataset))):
         
+        i = 6
         # i = 7981
         # i = 8839
 
@@ -179,4 +180,4 @@ if __name__ == "__main__":
     # detectGates()
 
     showCreatedDataset()
-    # checkDataset(show=False)
+    # checkDataset(show=True)

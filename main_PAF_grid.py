@@ -51,6 +51,15 @@ side_gates = np.array(gates_corners)
 
 vx_map_sum, vy_map_sum, c_grid_plot, grid_plot, v_points_plot = generate_PAF(side_gates, img_size, grid_size)
 
+# gate1 = [[55,105],[305,205]]
+# gate2 = [[105,155],[415,55]]
+
+# gates_corners = [gate1,gate2]
+
+# side_gates_ = np.array(gates_corners)
+
+# _, _, _, _, v_points_plot = generate_PAF(side_gates_, img_size, grid_size)
+
 plotVecMaps(img_size, grid_plot, c_grid_plot, vx_map_sum, vy_map_sum, side_gates, v_points_plot)
 
 exit()

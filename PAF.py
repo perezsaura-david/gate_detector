@@ -127,60 +127,191 @@ def getSidesFromCorners(corners, vx_maps, vy_maps, conf_th = 0.91):
         # for p_i in range(len(corners[c_i])):  
         #     # score_corner_list = []
         #     # Next corner
-            
+
+# def connectGatesFromSides(side_list):
+
+#     # side_list = np.array(side_list)
+#     n_points = []
+#     for side in side_list:
+#         n_points.append(len(side))
+#     n_gates = max(n_points)
+
+#     gate_list = []
+#     # print(side_list)
+#     for i in range(n_gates):
+#         print(i)
+#         gate = {'id':i,'c0':None,'c1':None,'c2':None,'c3':None,'c4':None,'n_corners':0,'score':0}
+#         # gate = []
+#         for j in range(4):
+#             # print(i,j,side_list)
+#             if j == 0:
+#                 if len(side_list[j]) >  i:
+#                     gate['c0'] = side_list[j][i]['side'][0]
+#                     gate['c1'] = side_list[j][i]['side'][1]
+#                     # side_list[j].pop(i)
+#                     # print('gate',gate)
+#                     # print('aferr',side_list)
+#                     gate['n_corners'] += 2
+#                 else:
+#                     continue
+#             else:
+#                 for k in range(len(side_list[j])):
+#                     c_prev = 'c'+str(j)
+#                     if np.array_equal(gate[c_prev],side_list[j][k]['side'][0]):
+#                         c_name = 'c'+str(j+1)
+#                         gate[c_name] = side_list[j][k]['side'][1]
+#                         # side_list[j].pop(k)
+#                         # print('gate',gate)
+#                         # print('aferr',side_list)
+#                         gate['n_corners'] += 1
+#                         # gate.append(side_list[j][k][1])
+#                     elif (j == 3) & (np.array_equal(gate['c0'],side_list[j][k]['side'][1])):
+#                         gate['c3'] = side_list[j][i]['side'][0]
+#                         gate['c4'] = side_list[j][i]['side'][1]
+#                         # side_list[j].pop(i)
+#                         # print('gate',gate)
+#                         # print('aferr',side_list)
+#                         gate['n_corners'] += 2
+#         # gate = gate[:-1] # Last point is useful just to check if the gate is correct. It may be deleted.
+#         print(gate)
+#         gate_list.append(gate)
+
+#     return gate_list
 
 def connectGatesFromSides(side_list):
 
-    # side_list = np.array(side_list)
-    n_points = []
-    for side in side_list:
-        n_points.append(len(side))
-    n_gates = max(n_points)
-
     gate_list = []
-    print(side_list)
-    for i in range(n_gates):
-        print(i)
-        gate = {'id':i,'c0':None,'c1':None,'c2':None,'c3':None,'c4':None,'n_corners':0,'score':0}
-        # gate = []
-        for j in range(4):
-            print(i,j,side_list)
-            if j == 0:
-                if len(side_list[j]) >  i:
-                    gate['c0'] = side_list[j][i]['side'][0]
-                    gate['c1'] = side_list[j][i]['side'][1]
-                    # side_list[j].pop(i)
-                    # print('gate',gate)
-                    # print('aferr',side_list)
-                else:
-                    continue
-            else:
-                for k in range(len(side_list[j])):
-                    c_prev = 'c'+str(j)
-                    if np.array_equal(gate[c_prev],side_list[j][k]['side'][0]):
-                        c_name = 'c'+str(j+1)
-                        gate[c_name] = side_list[j][k]['side'][1]
-                        # side_list[j].pop(k)
-                        # print('gate',gate)
-                        # print('aferr',side_list)
+    # new_gate = {'id':0,'c0':None,'c1':None,'c2':None,'c3':None,'c4':None,'n_corners':0,'score':0}
+    # gate_list.append(new_gate)
+    for i in range(4):
+        for j in range(len(side_list[i])):
+        # for side in side_list[i]:
+            connected = False
+            c_curr = 'c'+str(i)
+            c_next = 'c'+str((i+1) % 4)
+            for gate in gate_list:
+                if np.array_equal(side_list[i][j]['side'][0],gate[c_curr]):
+                    if gate[c_next] is None:
+                        gate[c_next] = side_list[i][j]['side'][1]
                         gate['n_corners'] += 1
-                        # gate.append(side_list[j][k][1])
-                    elif (j == 3) & (np.array_equal(gate['c0'],side_list[j][k]['side'][1])):
-                        gate['c3'] = side_list[j][i]['side'][0]
-                        gate['c4'] = side_list[j][i]['side'][1]
-                        # side_list[j].pop(i)
-                        # print('gate',gate)
-                        # print('aferr',side_list)
-                        gate['n_corners'] += 2
-        # gate = gate[:-1] # Last point is useful just to check if the gate is correct. It may be deleted.
-        print(gate)
-        gate_list.append(gate)
+                    else:
+                        if np.array_equal(side_list[i][j]['side'][1],gate[c_next]):
+                            print("Connection secure")
+                            gate['score']=1
+                        else:
+                            print("Connection error")
+                            gate['score']=-1
+
+                    connected = True
+                    break
+                if np.array_equal(side_list[i][j]['side'][1],gate[c_next]):
+                    if gate[c_curr] is None:
+                        gate[c_curr] = side_list[i][j]['side'][0]
+                        gate['n_corners'] += 1
+                    else:
+                        if np.array_equal(side_list[i][j]['side'][0],gate[c_curr]):
+                            print("Connection secure")
+                            gate['score']=1
+                        else:
+                            print("Connection error")
+                            gate['score']=-1
+                    connected = True
+                    break
+            if connected == False:
+                new_gate = {'id':0,'c0':None,'c1':None,'c2':None,'c3':None, 'n_corners':0,'score':0}
+                new_gate[c_curr] = side_list[i][j]['side'][0]
+                new_gate[c_next] = side_list[i][j]['side'][1]
+                new_gate['n_corners'] = 2
+                gate_list.append(new_gate)
+            side_list[i][j]=None
 
     return gate_list
 
-def checkGates():
+# def connectGatesFromSides(side_list):
 
-    return
+#     # side_list = np.array(side_list)
+#     n_points = []
+#     for side in side_list:
+#         n_points.append(len(side))
+#     n_gates = max(n_points)
+
+#     gate_list = []
+#     # print(side_list)
+#     for i in range(n_gates):
+#         print(i)
+#         gate = {'id':i,'c0':None,'c1':None,'c2':None,'c3':None,'c4':None,'n_corners':0,'score':0}
+#         # gate = []
+#         for j in range(4):
+#             # print(i,j,side_list)
+#             if j == 0:
+#                 if len(side_list[j]) >  i:
+#                     gate['c0'] = side_list[j][i]['side'][0]
+#                     gate['c1'] = side_list[j][i]['side'][1]
+#                     # side_list[j].pop(i)
+#                     # print('gate',gate)
+#                     # print('aferr',side_list)
+#                     gate['n_corners'] += 2
+#                 else:
+#                     continue
+#             else:
+#                 for k in range(len(side_list[j])):
+#                     c_prev = 'c'+str(j)
+#                     if np.array_equal(gate[c_prev],side_list[j][k]['side'][0]):
+#                         c_name = 'c'+str(j+1)
+#                         gate[c_name] = side_list[j][k]['side'][1]
+#                         # side_list[j].pop(k)
+#                         # print('gate',gate)
+#                         # print('aferr',side_list)
+#                         gate['n_corners'] += 1
+#                         # gate.append(side_list[j][k][1])
+#                     elif (j == 3) & (np.array_equal(gate['c0'],side_list[j][k]['side'][1])):
+#                         gate['c3'] = side_list[j][i]['side'][0]
+#                         gate['c4'] = side_list[j][i]['side'][1]
+#                         # side_list[j].pop(i)
+#                         # print('gate',gate)
+#                         # print('aferr',side_list)
+#                         gate['n_corners'] += 2
+#         # gate = gate[:-1] # Last point is useful just to check if the gate is correct. It may be deleted.
+#         print(gate)
+#         gate_list.append(gate)
+
+#     return gate_list
+
+def checkGates(gates):
+
+    # Check for union corner between gates
+    for i in range(len(gates)):
+        for j in range(len(gates)):
+            if i == j:
+                continue
+            if gates[i] is None or gates[j] is None:
+                continue
+            for k in range(4):
+                c_curr = 'c'+str(k)
+                if np.array_equal(gates[i][c_curr],gates[j][c_curr]) & (gates[i][c_curr] is not None):
+                    # Join gates
+                    for p in range(4):
+                        c_join = 'c'+str(p)
+                        if gates[i][c_join] is None:
+                            gates[i][c_join] = gates[j][c_join]
+                    gates[i]['n_corners'] += gates[j]['n_corners'] - 1
+                    gates[j]=None
+                    break
+
+    gates_checked = []
+
+    for gate in gates:
+        print(gate)
+        if gate is None:
+            continue
+        elif gate['score'] < 1:
+            continue
+        elif gate['n_corners'] < 4:
+            continue
+        else:
+            gates_checked.append(gate)
+
+    return gates_checked
 
 def getSides(labels):
 
@@ -196,11 +327,9 @@ def getSides(labels):
 def getGates(connected_sides):
 
     connected_gates_dict = connectGatesFromSides(connected_sides)
+    checked_gates  = checkGates(connected_gates_dict)
 
-    return connected_gates_dict
-
-    # Alternativa
-    # gates = getGatesfromCorners(image_dims, labels)
+    return checked_gates
 
 def detectGates(labels):
 

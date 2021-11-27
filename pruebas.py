@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     dataset = PAFDataset(image_dims, PATH_IMAGES, PATH_LABELS,label_transformations='PAFGauss')
 
-    camera_matrix, distorsion = getCameraParams()
+    # camera_matrix, distorsion = getCameraParams()
 
     for i in tqdm(range(len(dataset))):
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 
         print(detected_gates)
-        gate_corners, gate_estimations = estimateGatePose(detected_gates, camera_matrix)
+        # gate_corners, gate_estimations = estimateGatePose(detected_gates, camera_matrix)
 
         for i in range(len(gate_corners)):
 

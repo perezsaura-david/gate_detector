@@ -22,16 +22,18 @@ test_metrics = True
 
 
 # # Load test dataset
-PATH_IMAGES = "/home/dps/rosbag_gates/images/one_gate/2021-07-09-10-12-46/"
+# PATH_IMAGES = "/home/dps/rosbag_gates/images/one_gate/2021-07-09-10-12-46/"
 # PATH_IMAGES  = "./Dataset/Data_Test/"
 # PATH_IMAGES = "./Dataset/Data_LeaderboardTesting/"
-PATH_IMAGES = "./Dataset/Data_Adam/gates/"
-# PATH_IMAGES = "/home/dps/rosbag_gates/images/multiple_gates/2021-07-09-11-08-51/"
+# PATH_IMAGES = "./Dataset/Data_Adam/gates/"
+PATH_IMAGES = "/home/dps/rosbag_gates/images/multiple_gates/0/"
+# PATH_IMAGES = "/home/dps/rosbag_gates/images/circuit/2021-07-09-11-25-46"
 # PATH_LABELS  = "./Dataset/out.json"
 
 test_metrics = False
 
 image_list = os.listdir(PATH_IMAGES)
+# image_list.sort()
 dataset = image_list
 
 # Load Model
@@ -76,7 +78,7 @@ avg = 0
 detections = []
 # for image,label in dataset:
 for i in tqdm(range(len(dataset))):
-
+    i = i
     # TEST IMAGES
     # i = 9 # Test gate for PNP
     image_name = dataset[i]
@@ -143,5 +145,5 @@ for i in tqdm(range(len(dataset))):
 # print('det',np.shape(detections))
 # print('gt',np.shape(gt))
 
-det_metrics = getDetectionMetrics(detections,gt)
+# det_metrics = getDetectionMetrics(detections,gt)
 

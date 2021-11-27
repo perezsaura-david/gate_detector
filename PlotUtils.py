@@ -1,5 +1,6 @@
 import torch, cv2, math
 import numpy as np
+import copy
 
 from PAF   import getGates, getSides
 from utils import cleanGaussianMap, getCornersFromGaussMap, normalizeLabels, resizeLabels, dict2arrayGates
@@ -60,6 +61,9 @@ def addDetections2Image(image, corners, gt, size=3):
     return image
 
 def addGates2Image(image, gates):
+
+    if gates == []:
+        return image
 
     resized_gates  = gates2plot(gates)
 
@@ -154,6 +158,7 @@ def showLabels(image, labels):
 
     ### GATES ###
     detected_sides = getSides(labels)
+    plot_sides = copy.deepcopy(detected_sides)
     detected_gates = getGates(detected_sides)
 
     ### Estimate pose ###
@@ -236,8 +241,9 @@ def showLabels(image, labels):
     # image = addImgCenter2Image(image, camera_matrix)
     image_gate = image.copy()
     image_gate = addGates2Image(image_gate, detected_gates)
+    # image_gate = addCorners2Image(image_gate, resized_coords)
     # image_side = image.copy()
-    image = addSides2Image(image, detected_sides)
+    image = addSides2Image(image, plot_sides)
     image = addCorners2Image(image, resized_coords)
 
 
@@ -251,6 +257,8 @@ def showLabels(image, labels):
     # cv2.imshow('PAF', b_paf_map_img)
 
     k = cv2.waitKey()
+
+    # detected_gates = getGates(detected_sides)
 
     return k
 

@@ -180,11 +180,16 @@ def getCornersFromGaussMap(corner_maps):
     corners_detected = []
     for gauss_map in corner_maps:
 
+        # cv2.imshow('img',gauss_map)
+        # cv2.waitKey()
         g_map = cleanGaussianMap(gauss_map,0.25)
+        # cv2.imshow('img',g_map)
+        # cv2.waitKey()
 
-        coordinates = peak_local_max(g_map, min_distance=8)
+        coordinates = peak_local_max(g_map, min_distance=4)
         corners_detected.append(coordinates)
 
+    # print(corners_detected)
     return corners_detected
 
 
@@ -270,7 +275,7 @@ def dict2arrayGates(dict_list):
     gates_list = []
     for dic in dict_list:
         gate = []
-        for i in range(5):
+        for i in range(4):
             c_name = 'c'+str(i)
             point = dic[c_name]
             if point is None:

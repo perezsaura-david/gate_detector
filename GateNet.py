@@ -11,7 +11,7 @@ from createTags import *
 
 # PATH_LABELS  = "./Dataset/training_GT_labels_v2.json"
 # PATH_IMAGES  = "./Dataset/Data_Training/"
-PATH_LABELS  = "./Dataset/out.json"
+PATH_LABELS  = "./Dataset/adam_labels.json"
 PATH_IMAGES  = "./Dataset/Data_Adam/gates/"
 # image_dims = (480,368)
 image_dims = (240,192)
